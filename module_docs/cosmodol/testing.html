@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cosmodol.testing &mdash; cosmodol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="cosmodol.tests.test_errors" href="tests/test_errors.html" />
+    <link rel="prev" title="cosmodol.stores" href="stores.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cosmodol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../cosmodol.html">cosmodol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base.html">cosmodol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection.html">cosmodol.connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errors.html">cosmodol.errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stores.html">cosmodol.stores</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">cosmodol.testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.testing.FakeContainerProxy"><code class="docutils literal notranslate"><span class="pre">FakeContainerProxy</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.testing.FakeContainerProxy.query_items"><code class="docutils literal notranslate"><span class="pre">FakeContainerProxy.query_items()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.testing.cosmos_emulator"><code class="docutils literal notranslate"><span class="pre">cosmos_emulator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.testing.emulator_is_running"><code class="docutils literal notranslate"><span class="pre">emulator_is_running()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.testing.mk_emulator_connection"><code class="docutils literal notranslate"><span class="pre">mk_emulator_connection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_errors.html">cosmodol.tests.test_errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_integration_emulator.html">cosmodol.tests.test_integration_emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_stores.html">cosmodol.tests.test_stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trees.html">cosmodol.trees</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cosmodol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">cosmodol.testing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/cosmodol/testing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cosmodol.testing">
+<span id="cosmodol-testing"></span><h1>cosmodol.testing<a class="headerlink" href="#module-cosmodol.testing" title="Link to this heading"></a></h1>
+<p>Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.</p>
+<p>The emulator-backed pieces require Docker. Unit tests can use <code class="docutils literal notranslate"><span class="pre">FakeContainerProxy</span></code>
+for fast in-memory testing of the metal layer without any SDK / network.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.testing.FakeContainerProxy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.testing.</span></span><span class="sig-name descname"><span class="pre">FakeContainerProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">container_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fake-container'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/id'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/cosmodol/testing.html#FakeContainerProxy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.testing.FakeContainerProxy" title="Link to this definition"></a></dt>
+<dd><p>A dict-of-dicts-backed stand-in for <code class="docutils literal notranslate"><span class="pre">azure.cosmos.ContainerProxy</span></code>.</p>
+<p>Supports the subset of methods that cosmodol.base / .stores call:
+<code class="docutils literal notranslate"><span class="pre">read_item</span></code>, <code class="docutils literal notranslate"><span class="pre">upsert_item</span></code>, <code class="docutils literal notranslate"><span class="pre">replace_item</span></code>, <code class="docutils literal notranslate"><span class="pre">delete_item</span></code>, <code class="docutils literal notranslate"><span class="pre">query_items</span></code>,
+<code class="docutils literal notranslate"><span class="pre">read</span></code> (container metadata). Storage is <code class="docutils literal notranslate"><span class="pre">{(pk_value,</span> <span class="pre">id):</span> <span class="pre">item_dict}</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.testing.FakeContainerProxy.query_items">
+<span class="sig-name descname"><span class="pre">query_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_cross_partition_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_item_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_kw</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/testing.html#FakeContainerProxy.query_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.testing.FakeContainerProxy.query_items" title="Link to this definition"></a></dt>
+<dd><p>Very small SQL emulator: supports COUNT(1) and projections of c.id / c.&lt;pk&gt;.</p>
+<p>Sufficient for the queries cosmodol issues internally. Real SQL is out of scope.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.testing.cosmos_emulator">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.testing.</span></span><span class="sig-name descname"><span class="pre">cosmos_emulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/cosmodol/testing.html#cosmos_emulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.testing.cosmos_emulator" title="Link to this definition"></a></dt>
+<dd><p>Context manager that ensures the Linux vNext emulator is running.</p>
+<p>If the emulator is already up (port 8081 reachable), do nothing on enter/exit.
+Otherwise start it via <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code> and stop it on exit. Note the emulator takes
+~30-60 seconds to become ready.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container_name</strong> – Docker container name. Random by default.</p></li>
+<li><p><strong>wait</strong> – Max seconds to wait for the endpoint to come up.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p>The emulator connection string.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – if Docker is unavailable and the emulator is not already running.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.testing.emulator_is_running">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.testing.</span></span><span class="sig-name descname"><span class="pre">emulator_is_running</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/cosmodol/testing.html#emulator_is_running"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.testing.emulator_is_running" title="Link to this definition"></a></dt>
+<dd><p>Return True if the Cosmos emulator’s HTTPS endpoint (port 8081) is reachable.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.testing.mk_emulator_connection">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.testing.</span></span><span class="sig-name descname"><span class="pre">mk_emulator_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="connection.html#cosmodol.connection.CosmosConnection" title="cosmodol.connection.CosmosConnection"><span class="pre">CosmosConnection</span></a></span></span><a class="reference internal" href="../../_modules/cosmodol/testing.html#mk_emulator_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.testing.mk_emulator_connection" title="Link to this definition"></a></dt>
+<dd><p>Build a <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> pointing at the running emulator. Disables SSL
+verification (the emulator uses a self-signed cert).</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="stores.html" class="btn btn-neutral float-left" title="cosmodol.stores" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tests/test_errors.html" class="btn btn-neutral float-right" title="cosmodol.tests.test_errors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

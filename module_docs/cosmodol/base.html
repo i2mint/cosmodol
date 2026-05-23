@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cosmodol.base &mdash; cosmodol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="cosmodol.connection" href="connection.html" />
+    <link rel="prev" title="cosmodol" href="../cosmodol.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cosmodol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../cosmodol.html">cosmodol</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">cosmodol.base</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.ResponseHeaders"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.base.ResponseHeaders.request_charge"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.request_charge</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.base.ResponseHeaders.etag"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.etag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.etag</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.request_charge</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.batch"><code class="docutils literal notranslate"><span class="pre">batch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.point_contains"><code class="docutils literal notranslate"><span class="pre">point_contains()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.point_delete"><code class="docutils literal notranslate"><span class="pre">point_delete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.point_get"><code class="docutils literal notranslate"><span class="pre">point_get()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.point_replace"><code class="docutils literal notranslate"><span class="pre">point_replace()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.point_upsert"><code class="docutils literal notranslate"><span class="pre">point_upsert()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.base.query"><code class="docutils literal notranslate"><span class="pre">query()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="connection.html">cosmodol.connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errors.html">cosmodol.errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stores.html">cosmodol.stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">cosmodol.testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_errors.html">cosmodol.tests.test_errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_integration_emulator.html">cosmodol.tests.test_integration_emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_stores.html">cosmodol.tests.test_stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trees.html">cosmodol.trees</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cosmodol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">cosmodol.base</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/cosmodol/base.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cosmodol.base">
+<span id="cosmodol-base"></span><h1>cosmodol.base<a class="headerlink" href="#module-cosmodol.base" title="Link to this heading"></a></h1>
+<p>Close-to-metal CRUD facade for Cosmos DB.</p>
+<p>Functional layer over <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code>. Each function takes the container plus
+normalized args and returns <code class="docutils literal notranslate"><span class="pre">(value,</span> <span class="pre">ResponseHeaders)</span></code> so callers can observe RU
+charges and ETags. The Mapping-shaped stores in <code class="docutils literal notranslate"><span class="pre">cosmodol.stores</span></code> route all their
+work through these.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">misc/docs/architecture.md</span></code> Layer A.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.base.ResponseHeaders">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">ResponseHeaders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_charge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/cosmodol/base.html#ResponseHeaders"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.ResponseHeaders" title="Link to this definition"></a></dt>
+<dd><p>Subset of Cosmos response headers we surface for observability.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cosmodol.base.ResponseHeaders.request_charge">
+<span class="sig-name descname"><span class="pre">request_charge</span></span><a class="headerlink" href="#cosmodol.base.ResponseHeaders.request_charge" title="Link to this definition"></a></dt>
+<dd><p>RU consumed by the operation. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the emulator (which
+does not populate this header) was the backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cosmodol.base.ResponseHeaders.etag">
+<span class="sig-name descname"><span class="pre">etag</span></span><a class="headerlink" href="#cosmodol.base.ResponseHeaders.etag" title="Link to this definition"></a></dt>
+<dd><p>ETag of the (created / read / replaced) item, when applicable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">etag</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">request_charge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.batch">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.batch" title="Link to this definition"></a></dt>
+<dd><p>Transactional batch within one logical partition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operations</strong> – List of <code class="docutils literal notranslate"><span class="pre">(op_name,</span> <span class="pre">args_tuple,</span> <span class="pre">kwargs_dict)</span></code> triples. Cosmos op
+names: <code class="docutils literal notranslate"><span class="pre">&quot;create&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;upsert&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;replace&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;patch&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;read&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;delete&quot;</span></code>. ≤ 100 ops, ≤ 1.2 MB total.</p></li>
+<li><p><strong>partition_key</strong> – All ops must share this partition-key value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of per-op result dicts as returned by the SDK.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.point_contains">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">point_contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><span class="pre">ResponseHeaders</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#point_contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.point_contains" title="Link to this definition"></a></dt>
+<dd><p>Existence check via point read. <code class="docutils literal notranslate"><span class="pre">True/False</span></code>. Never raises <code class="docutils literal notranslate"><span class="pre">KeyError</span></code>.</p>
+<p>Cheaper than a <code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">VALUE</span> <span class="pre">COUNT(1)</span></code> query — ~1 RU vs ≥ 2.3 RU.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.point_delete">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">point_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><span class="pre">ResponseHeaders</span></a></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#point_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.point_delete" title="Link to this definition"></a></dt>
+<dd><p>Point delete. Raises <code class="docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code> on missing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.point_get">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">point_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><span class="pre">ResponseHeaders</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#point_get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.point_get" title="Link to this definition"></a></dt>
+<dd><p>Point read of one item. ~1 RU/KB. Raises <code class="docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code> on missing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.point_replace">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">point_replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><span class="pre">ResponseHeaders</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#point_replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.point_replace" title="Link to this definition"></a></dt>
+<dd><p>Full replace of an item. With <code class="docutils literal notranslate"><span class="pre">etag</span></code>, performs an If-Match conditional write.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.point_upsert">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">point_upsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><span class="pre">ResponseHeaders</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#point_upsert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.point_upsert" title="Link to this definition"></a></dt>
+<dd><p>Insert-or-replace an item. <code class="docutils literal notranslate"><span class="pre">id</span></code> and the partition-key value are extracted from
+<code class="docutils literal notranslate"><span class="pre">body</span></code>.</p>
+<p>Note: <code class="docutils literal notranslate"><span class="pre">etag</span></code> parameter accepted for symmetry but Cosmos does not honor it on
+<code class="docutils literal notranslate"><span class="pre">upsert_item</span></code>; use <code class="docutils literal notranslate"><span class="pre">point_replace</span></code> for ETag-conditional writes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.base.query">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.base.</span></span><span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sql</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_partition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_item_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/base.html#query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.base.query" title="Link to this definition"></a></dt>
+<dd><p>Run a SQL query. Yields dicts.</p>
+<p>Either pass <code class="docutils literal notranslate"><span class="pre">partition_key=</span></code> (cheap, single-partition) or
+<code class="docutils literal notranslate"><span class="pre">cross_partition=True</span></code> (RU scales with data). One of the two is required by Cosmos.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../cosmodol.html" class="btn btn-neutral float-left" title="cosmodol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="connection.html" class="btn btn-neutral float-right" title="cosmodol.connection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

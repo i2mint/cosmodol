@@ -1,0 +1,4 @@
+cosmodol.errors
+===============
+.. automodule:: cosmodol.errors
+   :members:

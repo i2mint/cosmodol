@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cosmodol.testing &mdash; cosmodol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cosmodol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol.html">cosmodol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/base.html">cosmodol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/connection.html">cosmodol.connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/errors.html">cosmodol.errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/stores.html">cosmodol.stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/testing.html">cosmodol.testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/tests/test_errors.html">cosmodol.tests.test_errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/tests/test_integration_emulator.html">cosmodol.tests.test_integration_emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/tests/test_stores.html">cosmodol.tests.test_stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/trees.html">cosmodol.trees</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cosmodol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cosmodol.testing</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cosmodol.testing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.</span>
+
+<span class="sd">The emulator-backed pieces require Docker. Unit tests can use ``FakeContainerProxy``</span>
+<span class="sd">for fast in-memory testing of the metal layer without any SDK / network.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.connection</span><span class="w"> </span><span class="kn">import</span> <span class="n">CosmosConnection</span>
+
+
+<span class="c1"># Well-known emulator credentials. Same on every Cosmos emulator instance.</span>
+<span class="n">EMULATOR_ENDPOINT</span> <span class="o">=</span> <span class="s2">&quot;https://localhost:8081&quot;</span>
+<span class="n">EMULATOR_KEY</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMb&quot;</span>
+    <span class="s2">&quot;IZnqyMsEcaGQy67XIw/Jw==&quot;</span>
+<span class="p">)</span>
+<span class="n">EMULATOR_CONNECTION_STRING</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;AccountEndpoint=</span><span class="si">{</span><span class="n">EMULATOR_ENDPOINT</span><span class="si">}</span><span class="s2">/;AccountKey=</span><span class="si">{</span><span class="n">EMULATOR_KEY</span><span class="si">}</span><span class="s2">;&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_port_open</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">socket</span><span class="o">.</span><span class="n">create_connection</span><span class="p">((</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="emulator_is_running">
+<a class="viewcode-back" href="../../module_docs/cosmodol/testing.html#cosmodol.testing.emulator_is_running">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">emulator_is_running</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return True if the Cosmos emulator&#39;s HTTPS endpoint (port 8081) is reachable.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_port_open</span><span class="p">(</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">8081</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">docker_available</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;docker&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="cosmos_emulator">
+<a class="viewcode-back" href="../../module_docs/cosmodol/testing.html#cosmodol.testing.cosmos_emulator">[docs]</a>
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cosmos_emulator</span><span class="p">(</span><span class="n">container_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">wait</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager that ensures the Linux vNext emulator is running.</span>
+
+<span class="sd">    If the emulator is already up (port 8081 reachable), do nothing on enter/exit.</span>
+<span class="sd">    Otherwise start it via ``docker run`` and stop it on exit. Note the emulator takes</span>
+<span class="sd">    ~30-60 seconds to become ready.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        container_name: Docker container name. Random by default.</span>
+<span class="sd">        wait: Max seconds to wait for the endpoint to come up.</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        The emulator connection string.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: if Docker is unavailable and the emulator is not already running.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">emulator_is_running</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="n">EMULATOR_CONNECTION_STRING</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">docker_available</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Cosmos emulator is not running and Docker is not available. Start manually:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;  docker run --detach --rm </span><span class="se">\\\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    --publish 8081:8081 --publish 8080:8080 --publish 1234:1234 </span><span class="se">\\\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">container_name</span> <span class="o">=</span> <span class="n">container_name</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;cosmos-emu-</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;docker&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;-d&quot;</span><span class="p">,</span> <span class="s2">&quot;--rm&quot;</span><span class="p">,</span> <span class="s2">&quot;--name&quot;</span><span class="p">,</span> <span class="n">container_name</span><span class="p">,</span>
+        <span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;8081:8081&quot;</span><span class="p">,</span> <span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;8080:8080&quot;</span><span class="p">,</span> <span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;1234:1234&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">deadline</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">wait</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">emulator_is_running</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">deadline</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cosmos emulator did not become ready within </span><span class="si">{</span><span class="n">wait</span><span class="si">}</span><span class="s2">s.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">EMULATOR_CONNECTION_STRING</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;docker&quot;</span><span class="p">,</span> <span class="s2">&quot;rm&quot;</span><span class="p">,</span> <span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="n">container_name</span><span class="p">],</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mk_emulator_connection">
+<a class="viewcode-back" href="../../module_docs/cosmodol/testing.html#cosmodol.testing.mk_emulator_connection">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mk_emulator_connection</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">CosmosConnection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a ``CosmosConnection`` pointing at the running emulator. Disables SSL</span>
+<span class="sd">    verification (the emulator uses a self-signed cert).&quot;&quot;&quot;</span>
+    <span class="c1"># The emulator presents a self-signed cert; pass connection_verify=False via</span>
+    <span class="c1"># client_kwargs so requests through azure-core skip verification.</span>
+    <span class="k">return</span> <span class="n">CosmosConnection</span><span class="p">(</span>
+        <span class="n">connection_string</span><span class="o">=</span><span class="n">EMULATOR_CONNECTION_STRING</span><span class="p">,</span>
+        <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;connection_verify&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># In-memory fake — for unit tests that don&#39;t want the emulator overhead.</span>
+<span class="c1"># Implements the subset of ContainerProxy used by cosmodol.base + .stores.</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_FakeLastHeaders</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_FakeClientConnection</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span> <span class="o">=</span> <span class="n">_FakeLastHeaders</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="FakeContainerProxy">
+<a class="viewcode-back" href="../../module_docs/cosmodol/testing.html#cosmodol.testing.FakeContainerProxy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FakeContainerProxy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A dict-of-dicts-backed stand-in for ``azure.cosmos.ContainerProxy``.</span>
+
+<span class="sd">    Supports the subset of methods that cosmodol.base / .stores call:</span>
+<span class="sd">    ``read_item``, ``upsert_item``, ``replace_item``, ``delete_item``, ``query_items``,</span>
+<span class="sd">    ``read`` (container metadata). Storage is ``{(pk_value, id): item_dict}``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">container_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;fake-container&quot;</span><span class="p">,</span>
+        <span class="n">partition_key_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/id&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dbs/fake-db/colls/</span><span class="si">{</span><span class="n">container_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">container_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span> <span class="o">=</span> <span class="n">partition_key_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span> <span class="o">=</span> <span class="n">partition_key_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_etag_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_connection</span> <span class="o">=</span> <span class="n">_FakeClientConnection</span><span class="p">()</span>
+
+    <span class="c1"># ---- helpers ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_next_etag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_etag_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;etag-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_etag_counter</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_hdrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">charge</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">etag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_connection</span><span class="o">.</span><span class="n">last_response_headers</span> <span class="o">=</span> <span class="n">_FakeLastHeaders</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;x-ms-request-charge&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span> <span class="k">if</span> <span class="n">charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="s2">&quot;etag&quot;</span><span class="p">:</span> <span class="n">etag</span><span class="p">}</span> <span class="k">if</span> <span class="n">etag</span> <span class="k">else</span>
+            <span class="p">{</span><span class="s2">&quot;x-ms-request-charge&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span> <span class="k">if</span> <span class="n">charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="c1"># ---- API surface ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">&quot;partitionKey&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span><span class="p">],</span> <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Hash&quot;</span><span class="p">},</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">partition_key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">azure.cosmos.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CosmosResourceNotFoundError</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">partition_key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">CosmosResourceNotFoundError</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Resource Not Found: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">etag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_etag&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">upsert_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">id_</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="n">pk</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">]</span>
+        <span class="n">etag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next_etag</span><span class="p">()</span>
+        <span class="n">stored</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">stored</span><span class="p">[</span><span class="s2">&quot;_etag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">etag</span>
+        <span class="n">stored</span><span class="p">[</span><span class="s2">&quot;_ts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[(</span><span class="n">pk</span><span class="p">,</span> <span class="n">id_</span><span class="p">)]</span> <span class="o">=</span> <span class="n">stored</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">etag</span><span class="o">=</span><span class="n">etag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">stored</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">replace_item</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">body</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">if_match_etag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">azure.cosmos.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">CosmosAccessConditionFailedError</span><span class="p">,</span>
+            <span class="n">CosmosResourceNotFoundError</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">pk</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">]</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CosmosResourceNotFoundError</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Not found: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">if_match_etag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_etag&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">if_match_etag</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CosmosAccessConditionFailedError</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;ETag mismatch&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="n">etag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next_etag</span><span class="p">()</span>
+        <span class="n">stored</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="n">stored</span><span class="p">[</span><span class="s2">&quot;_etag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">etag</span>
+        <span class="n">stored</span><span class="p">[</span><span class="s2">&quot;_ts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="n">stored</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">stored</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">etag</span><span class="o">=</span><span class="n">etag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">stored</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_item</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">partition_key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">if_match_etag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">azure.cosmos.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">CosmosAccessConditionFailedError</span><span class="p">,</span>
+            <span class="n">CosmosResourceNotFoundError</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">partition_key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CosmosResourceNotFoundError</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Not found: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">if_match_etag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_etag&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">if_match_etag</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CosmosAccessConditionFailedError</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;ETag mismatch&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FakeContainerProxy.query_items">
+<a class="viewcode-back" href="../../module_docs/cosmodol/testing.html#cosmodol.testing.FakeContainerProxy.query_items">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query_items</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">partition_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">enable_cross_partition_query</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">max_item_count</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">_kw</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Very small SQL emulator: supports COUNT(1) and projections of c.id / c.&lt;pk&gt;.</span>
+
+<span class="sd">        Sufficient for the queries cosmodol issues internally. Real SQL is out of scope.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">partition_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">pk</span> <span class="o">==</span> <span class="n">partition_key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="c1"># parameter substitution (simple): @name -&gt; value</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">parameters</span> <span class="ow">or</span> <span class="p">[])}</span>
+        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+
+        <span class="n">q_upper</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_hdrs</span><span class="p">(</span><span class="n">charge</span><span class="o">=</span><span class="mf">2.5</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;COUNT(1)&quot;</span> <span class="ow">in</span> <span class="n">q_upper</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="s2">&quot;SELECT VALUE C.ID&quot;</span> <span class="ow">in</span> <span class="n">q_upper</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">it</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="k">return</span>
+        <span class="c1"># Projection select of c.id, c.&lt;pk&gt;</span>
+        <span class="k">if</span> <span class="s2">&quot;C.ID&quot;</span> <span class="ow">in</span> <span class="n">q_upper</span> <span class="ow">and</span> <span class="sa">f</span><span class="s2">&quot;C.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">q_upper</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">it</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">:</span> <span class="n">it</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">]}</span>
+            <span class="k">return</span>
+        <span class="c1"># Fallback: SELECT *</span>
+        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">it</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

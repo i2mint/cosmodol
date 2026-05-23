@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cosmodol.stores &mdash; cosmodol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="cosmodol.testing" href="testing.html" />
+    <link rel="prev" title="cosmodol.recipes" href="recipes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cosmodol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../cosmodol.html">cosmodol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base.html">cosmodol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="connection.html">cosmodol.connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errors.html">cosmodol.errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">cosmodol.stores</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.stores.CosmosItems"><code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.stores.CosmosItems.batch"><code class="docutils literal notranslate"><span class="pre">CosmosItems.batch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.stores.CosmosItems.query"><code class="docutils literal notranslate"><span class="pre">CosmosItems.query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.stores.CosmosItems.replace"><code class="docutils literal notranslate"><span class="pre">CosmosItems.replace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cosmodol.stores.CosmosPartitionedItems"><code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.stores.CosmosPartitionedItems.partition"><code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems.partition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cosmodol.stores.CosmosPartitionedItems.query"><code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems.query()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">cosmodol.testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_errors.html">cosmodol.tests.test_errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_integration_emulator.html">cosmodol.tests.test_integration_emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/test_stores.html">cosmodol.tests.test_stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trees.html">cosmodol.trees</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cosmodol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">cosmodol.stores</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/cosmodol/stores.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cosmodol.stores">
+<span id="cosmodol-stores"></span><h1>cosmodol.stores<a class="headerlink" href="#module-cosmodol.stores" title="Link to this heading"></a></h1>
+<p>Mapping stores over a Cosmos DB container.</p>
+<p>Two store flavors — pick one based on whether you have a fixed partition key value or
+want to span the whole container:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> — fixed partition; keys are <code class="docutils literal notranslate"><span class="pre">id</span></code> strings; the simplest dict surface.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code> — whole container; keys are <code class="docutils literal notranslate"><span class="pre">(pk_value,</span> <span class="pre">id)</span></code> tuples.</p></li>
+</ul>
+<p>See <code class="docutils literal notranslate"><span class="pre">misc/docs/architecture.md</span></code> Layer B and <code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §3.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosItems">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.stores.</span></span><span class="sig-name descname"><span class="pre">CosmosItems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip_system_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_ru</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosItems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosItems" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">MutableMapping[str,</span> <span class="pre">dict]</span></code> over one fixed partition of a Cosmos container.</p>
+<p>Keys are item <code class="docutils literal notranslate"><span class="pre">id</span></code> strings; values are JSON-dict items. The store auto-injects
+<code class="docutils literal notranslate"><span class="pre">id</span></code> and the partition-key property on writes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> – An already-built <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code> or a <code class="docutils literal notranslate"><span class="pre">(database,</span> <span class="pre">container)</span></code>
+tuple / <code class="docutils literal notranslate"><span class="pre">{&quot;database&quot;:</span> <span class="pre">...,</span> <span class="pre">&quot;container&quot;:</span> <span class="pre">...}</span></code> dict to resolve via
+<code class="docutils literal notranslate"><span class="pre">connection</span></code>.</p></li>
+<li><p><strong>partition_key_value</strong> – The single partition-key value this store is scoped to.</p></li>
+<li><p><strong>partition_key_path</strong> – Path of the partition-key property in items (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;/_pk&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;/id&quot;</span></code>). Read from the container if absent.</p></li>
+<li><p><strong>connection</strong> – <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> (or anything <code class="docutils literal notranslate"><span class="pre">from_anything</span></code> accepts).
+Ignored if <code class="docutils literal notranslate"><span class="pre">container</span></code> is a <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code>.</p></li>
+<li><p><strong>inject_id</strong> – If True, auto-inject <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;</span></code> into bodies on writes.</p></li>
+<li><p><strong>inject_partition_key</strong> – If True, auto-inject the partition-key property into bodies.</p></li>
+<li><p><strong>strict_keys</strong> – Validate <code class="docutils literal notranslate"><span class="pre">id</span></code> chars + length on writes.</p></li>
+<li><p><strong>strip_system_fields</strong> – Strip <code class="docutils literal notranslate"><span class="pre">_etag/_ts/_rid/_self/_attachments</span></code> from returned items.</p></li>
+<li><p><strong>record_ru</strong> – Optional callback <code class="docutils literal notranslate"><span class="pre">(op_name,</span> <span class="pre">ru)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code> invoked after each
+metal-layer op. Useful for Prometheus / logging.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosItems.batch">
+<span class="sig-name descname"><span class="pre">batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosItems.batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosItems.batch" title="Link to this definition"></a></dt>
+<dd><p>Transactional batch within this partition. See <code class="docutils literal notranslate"><span class="pre">base.batch</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosItems.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sql</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosItems.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosItems.query" title="Link to this definition"></a></dt>
+<dd><p>Run a SQL query scoped to this partition. Yields raw item dicts (no stripping).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosItems.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosItems.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosItems.replace" title="Link to this definition"></a></dt>
+<dd><p>Full replace with optional ETag-conditional write.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosPartitionedItems">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.stores.</span></span><span class="sig-name descname"><span class="pre">CosmosPartitionedItems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ContainerProxy</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip_system_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_ru</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len_via_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent_full_scan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosPartitionedItems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosPartitionedItems" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">MutableMapping[tuple[str,</span> <span class="pre">str],</span> <span class="pre">dict]</span></code> over all partitions of a container.</p>
+<p>Keys are <code class="docutils literal notranslate"><span class="pre">(partition_key_value,</span> <span class="pre">id)</span></code> tuples. Use <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> instead if you
+have a fixed partition.</p>
+<p>Iteration is cross-partition; the first call emits a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code> (silence with
+<code class="docutils literal notranslate"><span class="pre">silent_full_scan=True</span></code>). <code class="docutils literal notranslate"><span class="pre">__len__</span></code> is <strong>not</strong> implemented by default; opt-in via
+<code class="docutils literal notranslate"><span class="pre">len_via_query=True</span></code>. See <code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §§4, 6.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>partition_key_path</strong> – Path of the partition-key property in items. Read from the
+container if absent.</p></li>
+<li><p><strong>connection</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>inject_id</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>inject_partition_key</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>strict_keys</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>strip_system_fields</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>record_ru</strong> – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>len_via_query</strong> – If True, <code class="docutils literal notranslate"><span class="pre">__len__</span></code> runs a (cross-partition) COUNT query.</p></li>
+<li><p><strong>silent_full_scan</strong> – If True, <code class="docutils literal notranslate"><span class="pre">__iter__</span></code> does not emit the cross-partition warning.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosPartitionedItems.partition">
+<span class="sig-name descname"><span class="pre">partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pk_value</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cosmodol.stores.CosmosItems" title="cosmodol.stores.CosmosItems"><span class="pre">CosmosItems</span></a></span></span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosPartitionedItems.partition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosPartitionedItems.partition" title="Link to this definition"></a></dt>
+<dd><p>Narrow to a single partition; zero round-trips. Returns <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.stores.CosmosPartitionedItems.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sql</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_partition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/cosmodol/stores.html#CosmosPartitionedItems.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.stores.CosmosPartitionedItems.query" title="Link to this definition"></a></dt>
+<dd><p>Pass-through to <code class="docutils literal notranslate"><span class="pre">base.query</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="recipes.html" class="btn btn-neutral float-left" title="cosmodol.recipes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="testing.html" class="btn btn-neutral float-right" title="cosmodol.testing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

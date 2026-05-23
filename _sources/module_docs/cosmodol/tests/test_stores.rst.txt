@@ -1,0 +1,4 @@
+cosmodol.tests.test_stores
+==========================
+.. automodule:: cosmodol.tests.test_stores
+   :members:

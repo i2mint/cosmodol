@@ -1,0 +1,4 @@
+cosmodol.tests.test_integration_emulator
+========================================
+.. automodule:: cosmodol.tests.test_integration_emulator
+   :members:

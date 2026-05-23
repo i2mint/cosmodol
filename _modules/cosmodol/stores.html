@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cosmodol.stores &mdash; cosmodol 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cosmodol
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol.html">cosmodol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/base.html">cosmodol.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/connection.html">cosmodol.connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/errors.html">cosmodol.errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/stores.html">cosmodol.stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/testing.html">cosmodol.testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/tests/test_errors.html">cosmodol.tests.test_errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/tests/test_integration_emulator.html">cosmodol.tests.test_integration_emulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/tests/test_stores.html">cosmodol.tests.test_stores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/cosmodol/trees.html">cosmodol.trees</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cosmodol</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cosmodol.stores</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cosmodol.stores</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Mapping stores over a Cosmos DB container.</span>
+
+<span class="sd">Two store flavors — pick one based on whether you have a fixed partition key value or</span>
+<span class="sd">want to span the whole container:</span>
+
+<span class="sd">- ``CosmosItems`` — fixed partition; keys are ``id`` strings; the simplest dict surface.</span>
+<span class="sd">- ``CosmosPartitionedItems`` — whole container; keys are ``(pk_value, id)`` tuples.</span>
+
+<span class="sd">See ``misc/docs/architecture.md`` Layer B and ``misc/docs/design_decisions.md`` §3.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">azure.cosmos</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContainerProxy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">KvPersister</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ResponseHeaders</span><span class="p">,</span>
+    <span class="n">point_contains</span><span class="p">,</span>
+    <span class="n">point_delete</span><span class="p">,</span>
+    <span class="n">point_get</span><span class="p">,</span>
+    <span class="n">point_replace</span><span class="p">,</span>
+    <span class="n">point_upsert</span><span class="p">,</span>
+    <span class="n">query</span> <span class="k">as</span> <span class="n">_query</span><span class="p">,</span>
+    <span class="n">batch</span> <span class="k">as</span> <span class="n">_batch</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.connection</span><span class="w"> </span><span class="kn">import</span> <span class="n">CosmosConnection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">KeyMismatchError</span><span class="p">,</span>
+    <span class="n">validate_cosmos_id</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="c1"># Cosmos system fields stripped from returned items when ``strip_system_fields=True``.</span>
+<span class="n">SYSTEM_FIELDS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_etag&quot;</span><span class="p">,</span> <span class="s2">&quot;_ts&quot;</span><span class="p">,</span> <span class="s2">&quot;_rid&quot;</span><span class="p">,</span> <span class="s2">&quot;_self&quot;</span><span class="p">,</span> <span class="s2">&quot;_attachments&quot;</span><span class="p">,</span> <span class="s2">&quot;_lsn&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strip_system</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SYSTEM_FIELDS</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_container</span><span class="p">(</span>
+    <span class="n">container</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ContainerProxy</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">connection</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">CosmosConnection</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Polymorphic container resolution. Accepts:</span>
+
+<span class="sd">    - A dict ``{&quot;database&quot;: &quot;...&quot;, &quot;container&quot;: &quot;...&quot;}``.</span>
+<span class="sd">    - A tuple ``(&quot;database&quot;, &quot;container&quot;)``.</span>
+<span class="sd">    - Anything else (including ``ContainerProxy`` and duck-typed test fakes like</span>
+<span class="sd">      ``FakeContainerProxy``) is treated as an already-resolved container and used as-is.</span>
+
+<span class="sd">    Uses ``connection`` (or a default ``CosmosConnection()``) to resolve when a dict or</span>
+<span class="sd">    tuple is given.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">CosmosConnection</span><span class="o">.</span><span class="n">from_anything</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">container</span><span class="p">(</span><span class="n">container</span><span class="p">[</span><span class="s2">&quot;database&quot;</span><span class="p">],</span> <span class="n">container</span><span class="p">[</span><span class="s2">&quot;container&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">container</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">CosmosConnection</span><span class="o">.</span><span class="n">from_anything</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">container</span><span class="p">(</span><span class="o">*</span><span class="n">container</span><span class="p">)</span>
+    <span class="c1"># Trust duck-typing for anything else (covers ContainerProxy and test fakes).</span>
+    <span class="k">return</span> <span class="n">container</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># CosmosItems — fixed partition</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="CosmosItems">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosItems">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CosmosItems</span><span class="p">(</span><span class="n">KvPersister</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;``MutableMapping[str, dict]`` over one fixed partition of a Cosmos container.</span>
+
+<span class="sd">    Keys are item ``id`` strings; values are JSON-dict items. The store auto-injects</span>
+<span class="sd">    ``id`` and the partition-key property on writes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        container: An already-built ``ContainerProxy`` or a ``(database, container)``</span>
+<span class="sd">            tuple / ``{&quot;database&quot;: ..., &quot;container&quot;: ...}`` dict to resolve via</span>
+<span class="sd">            ``connection``.</span>
+<span class="sd">        partition_key_value: The single partition-key value this store is scoped to.</span>
+<span class="sd">        partition_key_path: Path of the partition-key property in items (e.g. ``&quot;/_pk&quot;``,</span>
+<span class="sd">            ``&quot;/id&quot;``). Read from the container if absent.</span>
+<span class="sd">        connection: ``CosmosConnection`` (or anything ``from_anything`` accepts).</span>
+<span class="sd">            Ignored if ``container`` is a ``ContainerProxy``.</span>
+<span class="sd">        inject_id: If True, auto-inject ``&quot;id&quot;`` into bodies on writes.</span>
+<span class="sd">        inject_partition_key: If True, auto-inject the partition-key property into bodies.</span>
+<span class="sd">        strict_keys: Validate ``id`` chars + length on writes.</span>
+<span class="sd">        strip_system_fields: Strip ``_etag/_ts/_rid/_self/_attachments`` from returned items.</span>
+<span class="sd">        record_ru: Optional callback ``(op_name, ru) -&gt; None`` invoked after each</span>
+<span class="sd">            metal-layer op. Useful for Prometheus / logging.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">container</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ContainerProxy</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">partition_key_value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">partition_key_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">connection</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">inject_id</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">inject_partition_key</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">strict_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">strip_system_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">record_ru</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">_resolve_container</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">connection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span> <span class="o">=</span> <span class="n">partition_key_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span> <span class="o">=</span> <span class="n">partition_key_path</span> <span class="ow">or</span> <span class="n">_infer_pk_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+        <span class="c1"># Strip leading slash for property-name use (Cosmos uses &quot;/pk&quot; notation).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inject_id</span> <span class="o">=</span> <span class="n">inject_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inject_partition_key</span> <span class="o">=</span> <span class="n">inject_partition_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span> <span class="o">=</span> <span class="n">strict_keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strip_system_fields</span> <span class="o">=</span> <span class="n">strip_system_fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span> <span class="o">=</span> <span class="n">record_ru</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ResponseHeaders</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ---- internal: bookkeeping ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_observe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">:</span> <span class="n">ResponseHeaders</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span> <span class="o">=</span> <span class="n">hdrs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span> <span class="ow">and</span> <span class="n">hdrs</span><span class="o">.</span><span class="n">request_charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">hdrs</span><span class="o">.</span><span class="n">request_charge</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">last_request_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span><span class="o">.</span><span class="n">request_charge</span>
+
+    <span class="c1"># ---- body preparation ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">:</span>
+            <span class="n">validate_cosmos_id</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;CosmosItems values must be dicts; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Wrap with `dol.wrap_kvs(value_codec=...)` if you have a different value type.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="c1"># id injection / validation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inject_id</span><span class="p">:</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">existing</span> <span class="o">!=</span> <span class="n">k</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">KeyMismatchError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Body &#39;id&#39;=</span><span class="si">{</span><span class="n">existing</span><span class="si">!r}</span><span class="s2"> disagrees with key </span><span class="si">{</span><span class="n">k</span><span class="si">!r}</span><span class="s2">. &quot;</span>
+                    <span class="s2">&quot;Either omit &#39;id&#39; from the body or pass inject_id=False.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">body</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="c1"># partition_key injection / validation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inject_partition_key</span><span class="p">:</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">existing</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">KeyMismatchError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Body </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="si">!r}</span><span class="s2">=</span><span class="si">{</span><span class="n">existing</span><span class="si">!r}</span><span class="s2"> disagrees with store&#39;s &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;partition_key_value=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="si">!r}</span><span class="s2">. Either omit &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;from the body or pass inject_partition_key=False.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">body</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span>
+        <span class="k">return</span> <span class="n">body</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_maybe_strip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_strip_system</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_system_fields</span> <span class="k">else</span> <span class="n">item</span>
+
+    <span class="c1"># ---- Mapping interface ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_strip</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">_item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_upsert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">:</span>
+            <span class="n">validate_cosmos_id</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;del&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">present</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_contains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">present</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;SELECT VALUE c.id FROM c&quot;</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="n">partition_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span>
+        <span class="p">):</span>
+            <span class="c1"># SELECT VALUE c.id yields raw strings, but the iter wraps with dict(...);</span>
+            <span class="c1"># be defensive against both shapes.</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;$1&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">row</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single-partition COUNT. Bounded by partition size (20 GB → tens of millions).&quot;&quot;&quot;</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;SELECT VALUE COUNT(1) FROM c&quot;</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="n">partition_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;CosmosItems(container=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">container_link</span><span class="si">!r}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;partition_key_value=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># ---- explicit methods (not Mapping-shaped) ----</span>
+
+<div class="viewcode-block" id="CosmosItems.replace">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosItems.replace">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">replace</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">v</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">etag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Full replace with optional ETag-conditional write.&quot;&quot;&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_replace</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">,</span> <span class="n">etag</span><span class="o">=</span><span class="n">etag</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;replace&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_strip</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CosmosItems.query">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosItems.query">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a SQL query scoped to this partition. Yields raw item dicts (no stripping).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">partition_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CosmosItems.batch">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosItems.batch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transactional batch within this partition. See ``base.batch``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">operations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_infer_pk_path</span><span class="p">(</span><span class="n">container</span><span class="p">:</span> <span class="n">ContainerProxy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read the container definition and return its partition_key path.</span>
+
+<span class="sd">    Falls back to ``&quot;/id&quot;`` if the SDK can&#39;t resolve (e.g. on the emulator&#39;s container</span>
+<span class="sd">    metadata when offline). Logs a warning when falling back.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;partitionKey&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;paths&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="n">paths</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Could not read partition_key path from container (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); &quot;</span>
+            <span class="s2">&quot;defaulting to &#39;/id&#39;. Pass partition_key_path=... explicitly to silence.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;/id&quot;</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># CosmosPartitionedItems — whole container</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="CosmosPartitionedItems">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosPartitionedItems">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CosmosPartitionedItems</span><span class="p">(</span><span class="n">KvPersister</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;``MutableMapping[tuple[str, str], dict]`` over all partitions of a container.</span>
+
+<span class="sd">    Keys are ``(partition_key_value, id)`` tuples. Use ``CosmosItems`` instead if you</span>
+<span class="sd">    have a fixed partition.</span>
+
+<span class="sd">    Iteration is cross-partition; the first call emits a ``UserWarning`` (silence with</span>
+<span class="sd">    ``silent_full_scan=True``). ``__len__`` is **not** implemented by default; opt-in via</span>
+<span class="sd">    ``len_via_query=True``. See ``misc/docs/design_decisions.md`` §§4, 6.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        container: As in ``CosmosItems``.</span>
+<span class="sd">        partition_key_path: Path of the partition-key property in items. Read from the</span>
+<span class="sd">            container if absent.</span>
+<span class="sd">        connection: As in ``CosmosItems``.</span>
+<span class="sd">        inject_id, inject_partition_key, strict_keys, strip_system_fields, record_ru:</span>
+<span class="sd">            As in ``CosmosItems``.</span>
+<span class="sd">        len_via_query: If True, ``__len__`` runs a (cross-partition) COUNT query.</span>
+<span class="sd">        silent_full_scan: If True, ``__iter__`` does not emit the cross-partition warning.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">container</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ContainerProxy</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">partition_key_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">connection</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">inject_id</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">inject_partition_key</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">strict_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">strip_system_fields</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">record_ru</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">len_via_query</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">silent_full_scan</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">_resolve_container</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="n">connection</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span> <span class="o">=</span> <span class="n">partition_key_path</span> <span class="ow">or</span> <span class="n">_infer_pk_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inject_id</span> <span class="o">=</span> <span class="n">inject_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inject_partition_key</span> <span class="o">=</span> <span class="n">inject_partition_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span> <span class="o">=</span> <span class="n">strict_keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strip_system_fields</span> <span class="o">=</span> <span class="n">strip_system_fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span> <span class="o">=</span> <span class="n">record_ru</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">len_via_query</span> <span class="o">=</span> <span class="n">len_via_query</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">silent_full_scan</span> <span class="o">=</span> <span class="n">silent_full_scan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warned</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ResponseHeaders</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ---- internal ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_observe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">:</span> <span class="n">ResponseHeaders</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span> <span class="o">=</span> <span class="n">hdrs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span> <span class="ow">and</span> <span class="n">hdrs</span><span class="o">.</span><span class="n">request_charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">hdrs</span><span class="o">.</span><span class="n">request_charge</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">last_request_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_response_headers</span><span class="o">.</span><span class="n">request_charge</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_unpack_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;CosmosPartitionedItems keys must be (pk_value, id) tuples; got </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pk_value</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">:</span>
+            <span class="n">validate_cosmos_id</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;CosmosPartitionedItems values must be dicts; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inject_id</span><span class="p">:</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">existing</span> <span class="o">!=</span> <span class="n">id_</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">KeyMismatchError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Body &#39;id&#39;=</span><span class="si">{</span><span class="n">existing</span><span class="si">!r}</span><span class="s2"> disagrees with key id </span><span class="si">{</span><span class="n">id_</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">body</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inject_partition_key</span><span class="p">:</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">existing</span> <span class="o">!=</span> <span class="n">pk_value</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">KeyMismatchError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Body </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="si">!r}</span><span class="s2">=</span><span class="si">{</span><span class="n">existing</span><span class="si">!r}</span><span class="s2"> disagrees with key pk </span><span class="si">{</span><span class="n">pk_value</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">body</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">]</span> <span class="o">=</span> <span class="n">pk_value</span>
+        <span class="k">return</span> <span class="n">body</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_maybe_strip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_strip_system</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strip_system_fields</span> <span class="k">else</span> <span class="n">item</span>
+
+    <span class="c1"># ---- Mapping interface ----</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">pk</span><span class="p">,</span> <span class="n">id_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unpack_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_strip</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pk</span><span class="p">,</span> <span class="n">id_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unpack_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+        <span class="n">_item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_upsert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pk</span><span class="p">,</span> <span class="n">id_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unpack_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">:</span>
+            <span class="n">validate_cosmos_id</span><span class="p">(</span><span class="n">id_</span><span class="p">)</span>
+        <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;del&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">pk</span><span class="p">,</span> <span class="n">id_</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">present</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_contains</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">&quot;contains&quot;</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">present</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_warned</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silent_full_scan</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Iterating a CosmosPartitionedItems is a cross-partition scan; RU cost &quot;</span>
+                <span class="s2">&quot;scales with container size. Use .partition(pk_value) or .with_filter(...) &quot;</span>
+                <span class="s2">&quot;to narrow, or pass `silent_full_scan=True` to suppress this warning.&quot;</span><span class="p">,</span>
+                <span class="ne">UserWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warned</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SELECT c.id, c.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="si">}</span><span class="s2"> FROM c&quot;</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="n">cross_partition</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_prop</span><span class="p">),</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">len_via_query</span><span class="p">:</span>
+            <span class="c1"># TypeError (not NotImplementedError) so ``list(self)`` and other length-hint</span>
+            <span class="c1"># consumers fall back gracefully via ``operator.length_hint``. The error</span>
+            <span class="c1"># message still directs the user to the opt-in flag.</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;CosmosPartitionedItems.__len__ is disabled by default (cross-partition &quot;</span>
+                <span class="s2">&quot;COUNT cost scales with cardinality). Pass `len_via_query=True` to opt in.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="s2">&quot;SELECT VALUE COUNT(1) FROM c&quot;</span><span class="p">,</span> <span class="n">cross_partition</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;CosmosPartitionedItems(container=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">container_link</span><span class="si">!r}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;partition_key_path=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># ---- narrowing helpers (sub-stores) ----</span>
+
+<div class="viewcode-block" id="CosmosPartitionedItems.partition">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosPartitionedItems.partition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">partition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pk_value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CosmosItems</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Narrow to a single partition; zero round-trips. Returns ``CosmosItems``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">CosmosItems</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span>
+            <span class="n">partition_key_value</span><span class="o">=</span><span class="n">pk_value</span><span class="p">,</span>
+            <span class="n">partition_key_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">partition_key_path</span><span class="p">,</span>
+            <span class="n">inject_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inject_id</span><span class="p">,</span>
+            <span class="n">inject_partition_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inject_partition_key</span><span class="p">,</span>
+            <span class="n">strict_keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">,</span>
+            <span class="n">strip_system_fields</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">strip_system_fields</span><span class="p">,</span>
+            <span class="n">record_ru</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">record_ru</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CosmosPartitionedItems.query">
+<a class="viewcode-back" href="../../module_docs/cosmodol/stores.html#cosmodol.CosmosPartitionedItems.query">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">partition_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cross_partition</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pass-through to ``base.query``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="p">,</span>
+            <span class="n">sql</span><span class="p">,</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+            <span class="n">partition_key</span><span class="o">=</span><span class="n">partition_key</span><span class="p">,</span>
+            <span class="n">cross_partition</span><span class="o">=</span><span class="n">cross_partition</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

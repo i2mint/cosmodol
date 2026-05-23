@@ -1,0 +1,4 @@
+cosmodol.tests.test_errors
+==========================
+.. automodule:: cosmodol.tests.test_errors
+   :members:
