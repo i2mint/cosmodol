@@ -103,10 +103,14 @@ class CosmosDatabase(KvReader):
             raise ContainerNotFoundError(k) from e
         # Refuse non-empty container; force-delete via .delete(k, force=True).
         try:
-            next(iter(c.query_items(
-                query="SELECT VALUE c.id FROM c OFFSET 0 LIMIT 1",
-                enable_cross_partition_query=True,
-            )))
+            next(
+                iter(
+                    c.query_items(
+                        query="SELECT VALUE c.id FROM c OFFSET 0 LIMIT 1",
+                        enable_cross_partition_query=True,
+                    )
+                )
+            )
             raise ContainerNotEmptyError(
                 f"Container {k!r} is not empty. Call "
                 f"`db_store.delete({k!r}, force=True)` to cascade-delete its items."

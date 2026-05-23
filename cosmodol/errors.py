@@ -88,15 +88,11 @@ def validate_cosmos_id(k) -> None:
     §"id rules".
     """
     if not isinstance(k, str):
-        raise ValueError(
-            f"Cosmos item id must be a str, got {type(k).__name__}: {k!r}"
-        )
+        raise ValueError(f"Cosmos item id must be a str, got {type(k).__name__}: {k!r}")
     if not k:
         raise ValueError("Cosmos item id must be a non-empty string.")
     if len(k) > _ID_MAX_LEN:
-        raise ValueError(
-            f"Cosmos item id length {len(k)} exceeds {_ID_MAX_LEN}: {k!r}"
-        )
+        raise ValueError(f"Cosmos item id length {len(k)} exceeds {_ID_MAX_LEN}: {k!r}")
     bad = sorted(set(k) & _ID_FORBIDDEN)
     if bad:
         raise ValueError(

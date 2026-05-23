@@ -77,8 +77,18 @@ def cosmos_emulator(container_name: Optional[str] = None, *, wait: float = 60.0)
 
     container_name = container_name or f"cosmos-emu-{uuid.uuid4().hex[:8]}"
     cmd = [
-        "docker", "run", "-d", "--rm", "--name", container_name,
-        "-p", "8081:8081", "-p", "8080:8080", "-p", "1234:1234",
+        "docker",
+        "run",
+        "-d",
+        "--rm",
+        "--name",
+        container_name,
+        "-p",
+        "8081:8081",
+        "-p",
+        "8080:8080",
+        "-p",
+        "1234:1234",
         "mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview",
     ]
     subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -94,7 +104,8 @@ def cosmos_emulator(container_name: Optional[str] = None, *, wait: float = 60.0)
     finally:
         subprocess.call(
             ["docker", "rm", "-f", container_name],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
 
 
@@ -154,9 +165,12 @@ class FakeContainerProxy:
 
     def _set_hdrs(self, *, charge: Optional[float] = 1.0, etag: Optional[str] = None):
         self.client_connection.last_response_headers = _FakeLastHeaders(
-            {"x-ms-request-charge": str(charge) if charge is not None else None,
-             "etag": etag} if etag else
-            {"x-ms-request-charge": str(charge) if charge is not None else None}
+            {
+                "x-ms-request-charge": str(charge) if charge is not None else None,
+                "etag": etag,
+            }
+            if etag
+            else {"x-ms-request-charge": str(charge) if charge is not None else None}
         )
 
     # ---- API surface ----
@@ -207,7 +221,9 @@ class FakeContainerProxy:
         pk = body[self._pk_prop]
         key = (pk, item)
         if key not in self._data:
-            raise CosmosResourceNotFoundError(message=f"Not found: {key}", response=None)
+            raise CosmosResourceNotFoundError(
+                message=f"Not found: {key}", response=None
+            )
         if if_match_etag is not None and self._data[key].get("_etag") != if_match_etag:
             raise CosmosAccessConditionFailedError(
                 message="ETag mismatch", response=None
@@ -235,7 +251,9 @@ class FakeContainerProxy:
 
         key = (partition_key, item)
         if key not in self._data:
-            raise CosmosResourceNotFoundError(message=f"Not found: {key}", response=None)
+            raise CosmosResourceNotFoundError(
+                message=f"Not found: {key}", response=None
+            )
         if if_match_etag is not None and self._data[key].get("_etag") != if_match_etag:
             raise CosmosAccessConditionFailedError(
                 message="ETag mismatch", response=None

@@ -194,9 +194,7 @@ class CosmosItems(KvPersister):
 
     def __iter__(self) -> Iterator[str]:
         sql = "SELECT VALUE c.id FROM c"
-        for row in _query(
-            self.container, sql, partition_key=self.partition_key_value
-        ):
+        for row in _query(self.container, sql, partition_key=self.partition_key_value):
             # SELECT VALUE c.id yields raw strings, but the iter wraps with dict(...);
             # be defensive against both shapes.
             if isinstance(row, dict):
@@ -207,10 +205,10 @@ class CosmosItems(KvPersister):
     def __len__(self) -> int:
         """Single-partition COUNT. Bounded by partition size (20 GB → tens of millions)."""
         sql = "SELECT VALUE COUNT(1) FROM c"
-        for row in _query(
-            self.container, sql, partition_key=self.partition_key_value
-        ):
-            return int(row) if not isinstance(row, dict) else int(next(iter(row.values())))
+        for row in _query(self.container, sql, partition_key=self.partition_key_value):
+            return (
+                int(row) if not isinstance(row, dict) else int(next(iter(row.values())))
+            )
         return 0
 
     def __repr__(self) -> str:
@@ -244,7 +242,10 @@ class CosmosItems(KvPersister):
     ) -> Iterator[dict]:
         """Run a SQL query scoped to this partition. Yields raw item dicts (no stripping)."""
         return _query(
-            self.container, sql, parameters=parameters, partition_key=self.partition_key_value
+            self.container,
+            sql,
+            parameters=parameters,
+            partition_key=self.partition_key_value,
         )
 
     def batch(self, operations: list[tuple]) -> list[dict]:
@@ -427,7 +428,9 @@ class CosmosPartitionedItems(KvPersister):
         for row in _query(
             self.container, "SELECT VALUE COUNT(1) FROM c", cross_partition=True
         ):
-            return int(row) if not isinstance(row, dict) else int(next(iter(row.values())))
+            return (
+                int(row) if not isinstance(row, dict) else int(next(iter(row.values())))
+            )
         return 0
 
     def __repr__(self) -> str:
