@@ -90,6 +90,12 @@ doctest_optionflags = [
 markers = [
     "integration: tests requiring the Cosmos DB emulator via Docker. Skipped when unavailable.",
 ]
+# Default: skip integration tests (they need Docker + the Cosmos vNext emulator).
+# Run them explicitly:
+#   pytest -m integration
+# To run everything (e.g. when the emulator is up):
+#   pytest -m ""
+addopts = "-m 'not integration'"
 
 [tool.wads.ci]
 project_name = ""
