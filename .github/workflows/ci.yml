@@ -153,11 +153,16 @@ jobs:
           exclude-paths: ${{ needs.setup.outputs.exclude-paths }}
 
   # Publishing job
+  #
+  # Per repo policy, test failures do NOT block publication. The `if:` uses
+  # `!cancelled() && needs.setup.result == 'success'` so this job runs even when
+  # `validation` fails, while still requiring `setup` to have succeeded (publish
+  # consumes its outputs) and respecting workflow cancellation.
   publish:
     name: Publish
     permissions:
       contents: write
-    if: "!contains(github.event.head_commit.message, '[skip ci]') && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')"
+    if: "!cancelled() && needs.setup.result == 'success' && !contains(github.event.head_commit.message, '[skip ci]') && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')"
     needs: [setup, validation]
     runs-on: ubuntu-latest
 
