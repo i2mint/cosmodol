@@ -204,14 +204,15 @@ jobs:
         with:
           pypi-token: ${{ secrets.PYPI_PASSWORD }}
 
-      - name: Force SSH for git remote
-        run: git remote set-url origin git@github.com:${{ github.repository }}.git
-
+      # Push-back uses the GITHUB_TOKEN that `actions/checkout@v6` above already
+      # configured for HTTPS auth (the job has `permissions: contents: write`,
+      # which is exactly what's needed). The SSH detour previously here failed
+      # silently in any wads-managed repo lacking a deploy key, leaving PyPI
+      # one version ahead of `pyproject.toml`.
       - name: Commit Changes
         uses: i2mint/wads/actions/git-commit@master
         with:
           commit-message: "**CI** Formatted code + Updated version to ${{ env.VERSION }} [skip ci]"
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           push: true
 
       - name: Tag Repository
