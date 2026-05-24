@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>cosmodol.trees &mdash; cosmodol 0.0.1 documentation</title>
+  <title>cosmodol.trees &mdash; cosmodol 0.0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/documentation_options.js?v=e3a6060d"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -191,10 +191,14 @@
             <span class="k">raise</span> <span class="n">ContainerNotFoundError</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="c1"># Refuse non-empty container; force-delete via .delete(k, force=True).</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">query_items</span><span class="p">(</span>
-                <span class="n">query</span><span class="o">=</span><span class="s2">&quot;SELECT VALUE c.id FROM c OFFSET 0 LIMIT 1&quot;</span><span class="p">,</span>
-                <span class="n">enable_cross_partition_query</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)))</span>
+            <span class="nb">next</span><span class="p">(</span>
+                <span class="nb">iter</span><span class="p">(</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">query_items</span><span class="p">(</span>
+                        <span class="n">query</span><span class="o">=</span><span class="s2">&quot;SELECT VALUE c.id FROM c OFFSET 0 LIMIT 1&quot;</span><span class="p">,</span>
+                        <span class="n">enable_cross_partition_query</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="k">raise</span> <span class="n">ContainerNotEmptyError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Container </span><span class="si">{</span><span class="n">k</span><span class="si">!r}</span><span class="s2"> is not empty. Call &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;`db_store.delete(</span><span class="si">{</span><span class="n">k</span><span class="si">!r}</span><span class="s2">, force=True)` to cascade-delete its items.&quot;</span>
