@@ -59,10 +59,11 @@ Every Layer A function returns `(value, ResponseHeaders)` where `ResponseHeaders
 (an `Optional[float]`) after each op and accepts a `record_ru` callback:
 
 ```python
-items = CosmosItems(container, partition_key_value="t",
-                    record_ru=lambda op, ru: prom.observe(op, ru))
+items = CosmosItems(
+    container, partition_key_value="t", record_ru=lambda op, ru: prom.observe(op, ru)
+)
 items["k1"]
-items.last_request_charge   # → float (RU consumed)
+items.last_request_charge  # → float (RU consumed)
 ```
 
 If you add a new operation, **route it through the metal-layer free functions** so it
@@ -95,13 +96,14 @@ from cosmodol.stores import CosmosItems
 # Right way: compose
 CosmosBytesStore = wrap_kvs(
     CosmosItems,
-    value_codec=ValueCodecs.pickle_b64_in_property('_blob'),
+    value_codec=ValueCodecs.pickle_b64_in_property("_blob"),
 )
+
 
 # Wrong way: subclass
 class CosmosBytesStore(CosmosItems):  # don't do this
     def __getitem__(self, k):
-        return base64.b64decode(super().__getitem__(k)['_blob'])
+        return base64.b64decode(super().__getitem__(k)["_blob"])
 ```
 
 When the codec wraps the user's value into a Cosmos-shaped envelope `{"_blob": "..."}`,

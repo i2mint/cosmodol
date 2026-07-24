@@ -82,12 +82,24 @@ takes the container plus normalized args and returns `(value, response_headers)`
 can see RU charges and ETags:
 
 ```python
-def point_get(container, id, partition_key, *, consistency_level=None) -> tuple[dict, ResponseHeaders]: ...
+def point_get(
+    container, id, partition_key, *, consistency_level=None
+) -> tuple[dict, ResponseHeaders]: ...
 def point_upsert(container, body, *, etag=None) -> tuple[dict, ResponseHeaders]: ...
-def point_replace(container, id, body, partition_key, *, etag=None) -> tuple[dict, ResponseHeaders]: ...
+def point_replace(
+    container, id, body, partition_key, *, etag=None
+) -> tuple[dict, ResponseHeaders]: ...
 def point_delete(container, id, partition_key, *, etag=None) -> ResponseHeaders: ...
 def point_contains(container, id, partition_key) -> bool: ...
-def query(container, sql, *, parameters=None, partition_key=None, cross_partition=False, max_item_count=None) -> Iterator[dict]: ...
+def query(
+    container,
+    sql,
+    *,
+    parameters=None,
+    partition_key=None,
+    cross_partition=False,
+    max_item_count=None,
+) -> Iterator[dict]: ...
 def batch(container, operations, partition_key) -> list[dict]: ...
 ```
 
@@ -159,10 +171,12 @@ Built by composition only. Standard recipes:
 from dol import wrap_kvs, ValueCodecs
 
 # Default: JSON dicts in/out (Cosmos already speaks JSON natively, this just normalises)
-CosmosJsonStore = CosmosItems   # values are dicts, no codec needed
+CosmosJsonStore = CosmosItems  # values are dicts, no codec needed
 
 # Pickle objects keyed by string id — values stored as base64 in a {"_blob": "..."} property
-CosmosPickleStore = wrap_kvs(CosmosItems, value_codec=ValueCodecs.pickle_b64_in_property('_blob'))
+CosmosPickleStore = wrap_kvs(
+    CosmosItems, value_codec=ValueCodecs.pickle_b64_in_property("_blob")
+)
 
 # Strip Cosmos system fields (_etag, _ts, _rid, _self, _attachments) on read
 CosmosCleanStore = wrap_kvs(CosmosItems, obj_of_data=strip_system_fields)
@@ -207,7 +221,9 @@ Every metal-layer function returns a `ResponseHeaders` namedtuple including
 constructor hook for plugging metrics:
 
 ```python
-items = CosmosItems(container, partition_key_value="t", record_ru=lambda op, ru: prom.observe(op, ru))
+items = CosmosItems(
+    container, partition_key_value="t", record_ru=lambda op, ru: prom.observe(op, ru)
+)
 ```
 
 ## Sub-stores

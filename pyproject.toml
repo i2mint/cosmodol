@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cosmodol"
-version = "0.0.4"
+version = "0.0.5"
 description = "Azure Cosmos DB Data Object Layer — dol-style Mapping interfaces over the NoSQL/Core API."
 readme = "README.md"
 requires-python = ">=3.10"

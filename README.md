@@ -32,8 +32,8 @@ store = cosmos_store(
 )
 
 store["k1"] = {"name": "Alice", "age": 30}
-store["k1"]                # → {"id": "k1", "_pk": "my-partition", "name": "Alice", "age": 30}
-"k1" in store              # → True
+store["k1"]  # → {"id": "k1", "_pk": "my-partition", "name": "Alice", "age": 30}
+"k1" in store  # → True
 del store["k1"]
 ```
 
