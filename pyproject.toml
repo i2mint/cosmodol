@@ -7,9 +7,10 @@ build-backend = "hatchling.build"
 [project]
 name = "cosmodol"
 version = "0.0.4"
-description = "Azure Cosmos DB Data Object Layer"
+description = "Azure Cosmos DB Data Object Layer — dol-style Mapping interfaces over the NoSQL/Core API."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "Apache-2.0"
 keywords = [
     "azure",
     "cosmos",
@@ -18,13 +19,21 @@ keywords = [
     "dol",
 ]
 authors = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+]
 dependencies = [
     "dol",
     "azure-cosmos",
 ]
-
-[project.license]
-text = "Apache-2.0"
 
 [project.urls]
 Homepage = "https://github.com/i2mint/cosmodol"
@@ -81,7 +90,7 @@ convention = "google"
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [
-    "tests",
+    "cosmodol",
 ]
 doctest_optionflags = [
     "NORMALIZE_WHITESPACE",
