@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 3.4053022861480713,
-  "commit_message": "Merge 6acbe51f7c502fcffd670f0e019dc3764e63198a into a6aa9dd80680ec97cfa264a063454c59534f04ae",
-  "commit_sha": "d68f5da3b8df59d67532e25c2369376121f441fc",
+  "collection_duration_seconds": 4.039434194564819,
+  "commit_message": "ops: refuse same-key writes from other threads during an operation; batch failure notes (#5)\n\nPending-redirect registry (ConcurrentWriteError), batch failure note naming the keys layers acted on.",
+  "commit_sha": "b1d10827e058a425c78ab04a89e0554c89dc81e0",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -46,15 +46,15 @@
       "total_loc": 0
     },
     "workflow_status": {
-      "last_run_status": "failure",
-      "last_success_timestamp": "2026-10-13T08:51:19Z",
+      "last_run_status": "success",
+      "last_success_timestamp": "2026-10-13T23:17:56Z",
       "recent_failure_count": 4,
-      "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38483073468",
+      "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38483262649",
       "total_runs_analyzed": 10
     }
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-13T23:17:49.659797Z",
+  "timestamp": "2026-10-13T23:19:27.468793Z",
   "workflow_status": {}
 }
