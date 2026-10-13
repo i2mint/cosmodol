@@ -54,7 +54,9 @@ What remains outside a function's reach, stated rather than hidden (s3dol ADR-00
   raises ``RedirectError``, but cannot undo it. A write of the *same key* from another
   thread or task while the operation is pending is refused (``ConcurrentWriteError``, a
   ``RedirectError``), so a layer that writes from a thread the operation waits for cannot
-  slip past it; only a write that lands after the operation has finished escapes.
+  slip past it. What escapes: a write that lands after the operation has finished, and a
+  write through a different leaf object on the same container (``partition()`` child, a
+  second ``CosmosItems``).
 - ``batch_items`` collects its writes through the layers first and commits them as one
   transaction afterwards: a layer that acts after the inner write returns (a write-through
   cache, an audit log) has acted even if the transaction then fails. The error that reaches
@@ -298,9 +300,9 @@ def batch_items(
     try:
         return _batch(leaf.container, triples, leaf.partition_key_value)
     except Exception as e:
-        if acted and store is not leaf and hasattr(e, "add_note"):
+        if acted and _write_logic_above(store, leaf, CosmosItems) and hasattr(e, "add_note"):
             e.add_note(
-                "batch_items: the batch did not commit, but the wrapping layers had already "
+                "batch_items: the batch may not have committed, but the wrapping layers had already "
                 f"run their write logic for these keys: {acted!r}. A write-through cache, "
                 "audit log or index they keep may now disagree with the container "
                 "(i2mint/cosmodol#5)."

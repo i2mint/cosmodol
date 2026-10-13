@@ -359,3 +359,30 @@ def test_a_failed_batch_names_the_keys_the_layers_already_acted_on():
     notes = getattr(exc.value, "__notes__", [])
     assert any("app_new" in n and "app_doc1" in n for n in notes)
     assert "app_doc1" in store.cache  # the layer did act, as the note says
+
+
+def test_pending_redirects_are_compared_by_identity_not_by_store_contents():
+    from cosmodol.routing import _pending, redirect
+
+    a, b = _leaf(_container()), _leaf(_container())  # equal contents
+    assert a == b
+    with redirect(a, "__setitem__", "k", lambda k, v: None):
+        with redirect(b, "__setitem__", "k", lambda k, v: None):
+            pass
+        assert [p.leaf for p in _pending] == [a]  # only the inner one went
+    assert _pending == []
+
+
+def test_a_failed_batch_on_a_subclassed_leaf_also_gets_the_note():
+    class Cached(CosmosItems):
+        def __setitem__(self, k, v):
+            super().__setitem__(k, v)
+
+    c = _container()
+    leaf = Cached(c, partition_key_value=PK, partition_key_path="/_pk")
+    with pytest.raises(Exception) as exc:
+        batch_items(
+            leaf,
+            [("replace", "app_doc1", {"payload": "E"}, {"if_match_etag": "stale"})],
+        )
+    assert any("app_doc1" in n for n in getattr(exc.value, "__notes__", []))

@@ -33,7 +33,9 @@ write in another thread, or later (a write-behind buffer). Two things are done a
 - While an operation is pending, a write of *the same leaf key* arriving from a context that
   has no redirect (another thread, or a task that did not copy the context) is refused with
   :class:`ConcurrentWriteError`, before it acts, instead of running as an ordinary upsert or
-  delete outside the operation's checks. Writes of other keys are not affected.
+  delete outside the operation's checks. Writes of other keys are not affected, and neither
+  is a write through a *different leaf object* on the same container (a ``partition()``
+  child, a second ``CosmosItems``): the registry matches leaves by identity.
 - A write performed *after* the operation has finished is indistinguishable from any other
   writer's, so it cannot be refused: the operation raises :class:`RedirectError` when the
   write it asked for never reached the leaf, which is the only signal there is.
@@ -77,7 +79,7 @@ class ConcurrentWriteError(RedirectError):
 WRITE_METHODS = ("__setitem__", "__delitem__")
 
 
-@dataclass
+@dataclass(eq=False)  # compared by identity: the registry removes by it, and a leaf's == reads the store
 class Redirect:
     """One pending redirect of ``leaf.<method>(key, ...)`` to ``handler``.
 
@@ -118,9 +120,11 @@ def redirect(leaf, method: str, key, handler: Callable) -> Iterator[Redirect]:
     try:
         yield r
     finally:
-        with _pending_lock:
-            _pending.remove(r)
-        _active.reset(token)
+        try:
+            with _pending_lock:
+                _pending.remove(r)
+        finally:
+            _active.reset(token)
 
 
 def _refuse_if_pending(leaf, method: str, key) -> None:
@@ -131,8 +135,8 @@ def _refuse_if_pending(leaf, method: str, key) -> None:
         )
     if pending is not None:
         raise ConcurrentWriteError(
-            f"{method}({key!r}) on the cosmodol store was refused: another thread or task "
-            f"has an operation ({pending.method} of {pending.key!r}) pending on the same "
+            f"{method}({key!r}) on the cosmodol store was refused: another thread, task or "
+            f"redirect has an operation ({pending.method} of {pending.key!r}) pending on the same "
             "key. Retry once it has finished (i2mint/cosmodol#5)."
         )
 
