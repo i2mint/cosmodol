@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 4.80682635307312,
-  "commit_message": "fix: refuse same-key writes from other threads during an ops call; batch failure names the keys layers acted on (#5)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
-  "commit_sha": "861e964ff6e3e7f6b3c24060d30e6d62d0c5a123",
+  "collection_duration_seconds": 3.734970808029175,
+  "commit_message": "fix: pending redirects compared by identity; batch note on subclassed leaves (review of #6)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
+  "commit_sha": "4302ba5187ffa6982726baf0ae3791e37311f8a8",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -12,10 +12,10 @@
     },
     "umpyre_stats": {
       "comment_lines": 19892,
-      "comment_lines_ratio": 0.0590866695578302,
+      "comment_lines_ratio": 0.05908456351917308,
       "docs_lines": 40773,
       "empty_lines": 41543,
-      "empty_lines_ratio": 0.12339822609294893,
+      "empty_lines_ratio": 0.12339382778388333,
       "errors": [
         "auth.py: invalid non-printable character U+FEFF (auth.py, line 1)",
         "_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)",
@@ -29,32 +29,32 @@
         "http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)"
       ],
       "files_analyzed": 815,
-      "function_lines": 146169,
-      "function_lines_ratio": 0.4341765233560468,
-      "mean_lines_per_function": 16.868897864974034,
+      "function_lines": 146175,
+      "function_lines_ratio": 0.43417886951614343,
+      "mean_lines_per_function": 16.869590305828044,
       "num_classes": 2078,
       "num_functions": 8665,
       "pypi_version": "0.0.7",
       "total_errors": 11,
-      "total_lines": 336658
+      "total_lines": 336670
     },
     "wily": {
       "cyclomatic_avg": 0.0,
-      "error": "wily report failed: Usage: wily report [OPTIONS] FILE [METRICS]...\nTry 'wily report --help' for help.\n\nError: Invalid value for '-f' / '--format': 'json' is not one of 'CONSOLE', 'HTML'.\n",
+      "error": "wily build failed: \u001b[31mFailed to setup archiver: 'Dirty repository, make sure you commit/stash files first'\u001b[0m\n",
       "files_analyzed": 0,
       "maintainability_index": 0.0,
       "total_loc": 0
     },
     "workflow_status": {
-      "last_run_status": "success",
+      "last_run_status": "failure",
       "last_success_timestamp": "2026-10-13T08:51:19Z",
-      "recent_failure_count": 0,
-      "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38372091734",
+      "recent_failure_count": 2,
+      "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38482541945",
       "total_runs_analyzed": 10
     }
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-13T23:10:56.038267Z",
+  "timestamp": "2026-10-13T23:15:59.125810Z",
   "workflow_status": {}
 }
