@@ -41,11 +41,17 @@ mapping write:
   only by ``__contains__``.
 - **Write-through caches** see the value they would see for ``store[k] = v``. A cache
   that only fills on reads (``dol.cache_vals``) is stale after any write, mapping or not.
-- **A layer that swallows, defers or multiplies the write** makes the function raise
-  ``cosmodol.routing.RedirectError`` rather than guess.
+- **A layer that writes another key first** (an index, an audit record), **writes twice,
+  or swallows the write** makes the function raise ``cosmodol.routing.RedirectError``;
+  the leaf refuses any write but the expected one, before acting. An error a layer
+  catches is re-raised to the caller.
 
 What remains outside a function's reach, stated rather than hidden (s3dol ADR-0011 D3a):
 
+- A layer that performs the write in another thread or later (a write-behind buffer)
+  escapes the redirect: that write is the leaf's ordinary upsert or delete, without the
+  operation's semantics (no ETag check, outside a batch's transaction). The function
+  raises ``RedirectError``, but cannot undo it.
 - ``batch_items`` collects its writes through the layers first and commits them as one
   transaction afterwards: a layer that acts after the inner write returns (a write-through
   cache, an audit log) has acted even if the transaction then fails.
@@ -110,29 +116,39 @@ def _leaf_key(store, leaf, k):
     return inner_most_key(store, k)
 
 
-def _require_member(store, leaf, k, not_found: type[KeyError]) -> None:
-    """Check ``k in store`` through every wrapping layer, so a scope that a wrapper
-    expresses only in ``__contains__`` is honoured. Unwrapped stores skip the round-trip
-    (the operation itself fails on a missing resource)."""
-    if store is not leaf and k not in store:
+def _require_member(store, leaf, k, not_found: type[KeyError], base: type) -> None:
+    """Check ``k in store`` through every wrapping layer, so a scope that a wrapper (or
+    a subclass of ``base``) expresses only in ``__contains__`` is honoured. A plain
+    ``base`` instance skips the round-trip (the operation itself fails on a missing
+    resource)."""
+    if store is leaf and type(leaf).__contains__ is base.__contains__:
+        return
+    if k not in store:
         raise not_found(k)
 
 
 def _routed(store, leaf, method: str, handler: Callable, k, *v, what: str):
     """``store[k] = v`` (or ``del store[k]`` when no ``v``) through every wrapping layer,
     with the one resulting ``leaf.<method>`` call handed to ``handler`` (which receives the
-    leaf's arguments: ``(k, v)`` or ``(k,)``, fully mapped). Returns what it returned."""
-    with redirect(leaf, method, handler) as r:
+    leaf's arguments: ``(k, v)`` or ``(k,)``, fully mapped). Returns what it returned.
+
+    The redirect is pinned to ``k``'s leaf key, so a layer's write of any other key during
+    the operation is refused rather than given this operation's semantics."""
+    with redirect(leaf, method, _leaf_key(store, leaf, k), handler) as r:
         if v:
             store[k] = v[0]
         else:
             del store[k]
-    if not r.results:
+    if not r.claimed:
         raise RedirectError(
-            f"{what}: the write of {k!r} did not reach the cosmodol store; a wrapping "
-            "layer swallowed or deferred it, so it was not performed as a " + what + "."
+            f"{what}: the write of {k!r} did not reach the cosmodol store during the "
+            "operation. A wrapping layer swallowed it, or performs it elsewhere (another "
+            "thread, a write-behind buffer): then it may have been, or may later be, "
+            "performed as an ordinary upsert or delete, without this operation's checks."
         )
-    return r.results[0]
+    if r.error is not None:  # a layer caught it; the caller must still see it
+        raise r.error
+    return r.result
 
 
 def _write_logic_above(store, leaf, base: type) -> bool:
@@ -168,7 +184,7 @@ def replace_item(store, k, v, *, etag: Optional[str] = None) -> dict:
         leaf strips them).
     """
     leaf = _leaf_of(store, CosmosItems, fn="replace_item")
-    _require_member(store, leaf, k, ItemNotFoundError)
+    _require_member(store, leaf, k, ItemNotFoundError, CosmosItems)
 
     def replace(leaf_k, leaf_v):
         body = leaf._prepare_body(leaf_k, leaf_v)
@@ -258,7 +274,7 @@ def batch_items(
         if op in ("create", "upsert"):
             created.add(k)
         elif k not in created:
-            _require_member(store, leaf, k, ItemNotFoundError)
+            _require_member(store, leaf, k, ItemNotFoundError, CosmosItems)
         what = f"batch_items {op!r}"
         if op in ("create", "upsert", "replace"):
             leaf_k, body = _routed(
@@ -393,7 +409,7 @@ def delete_container(db_store, name: str, *, force: bool = False) -> None:
     if not force:
         del db_store[name]
         return
-    _require_member(db_store, leaf, name, ContainerNotFoundError)
+    _require_member(db_store, leaf, name, ContainerNotFoundError, CosmosDatabase)
 
     def cascade(k):
         try:
@@ -449,7 +465,7 @@ def delete_database(account_store, name: str, *, force: bool = False) -> None:
     if not force:
         del account_store[name]
         return
-    _require_member(account_store, leaf, name, DatabaseNotFoundError)
+    _require_member(account_store, leaf, name, DatabaseNotFoundError, CosmosAccount)
 
     def cascade(k):
         try:

@@ -12,17 +12,23 @@ upsert or delete.
 
 >>> class Leaf(dict):
 ...     def __setitem__(self, k, v):
-...         if (handler := claim(self, "__setitem__")) is not None:
+...         if (handler := claim(self, "__setitem__", k)) is not None:
 ...             return handler(k, v)
 ...         super().__setitem__(k, v)
 >>> leaf = Leaf()
->>> with redirect(leaf, "__setitem__", lambda k, v: f"handled {k}={v}") as r:
+>>> with redirect(leaf, "__setitem__", "a", lambda k, v: f"handled {k}={v}") as r:
 ...     leaf["a"] = 1
->>> r.results, dict(leaf)
-(['handled a=1'], {})
+>>> r.result, dict(leaf)
+('handled a=1', {})
+
+The redirect is pinned to the leaf key the operation computed (``dol.inner_most_key``), so a
+layer that writes some *other* key first (an index, an audit record) cannot have the
+operation's semantics applied to it: that write is refused instead.
 
 The redirect is held in a ``ContextVar``, so it is invisible to other threads and tasks, and
-it only applies to the leaf object it names.
+it only applies to the leaf object it names. The flip side: a layer that performs the write
+in another thread, or later (a write-behind buffer), escapes it, and that write happens as
+the leaf's ordinary upsert or delete.
 """
 
 from __future__ import annotations
@@ -37,31 +43,41 @@ class RedirectError(RuntimeError):
     """A wrapping layer did not turn one mapping write into exactly one leaf write."""
 
 
+#: The leaf methods a redirect guards: while one is pending on a leaf, any of them called
+#: with anything but the expected method and key is refused.
+WRITE_METHODS = ("__setitem__", "__delitem__")
+
+
 @dataclass
 class Redirect:
-    """One pending redirect of ``method`` on ``leaf`` to ``handler``.
+    """One pending redirect of ``leaf.<method>(key, ...)`` to ``handler``.
 
-    ``results`` holds what the handler returned, one entry per leaf call (so after a
-    redirect, ``len(results)`` says whether the write reached the leaf).
+    After the block, ``claimed`` says whether the write reached the leaf, ``result`` is
+    what the handler returned, and ``error`` what it raised (re-raised by the caller
+    even if a layer swallowed it).
     """
 
     leaf: Any
     method: str
+    key: Any
     handler: Callable
-    results: list = field(default_factory=list)
+    claimed: bool = False
+    result: Any = None
+    error: Optional[BaseException] = None
 
 
 _active: ContextVar[Optional[Redirect]] = ContextVar("cosmodol_redirect", default=None)
 
 
 @contextmanager
-def redirect(leaf, method: str, handler: Callable) -> Iterator[Redirect]:
-    """Within the block, the first call of ``leaf.<method>`` goes to ``handler``.
+def redirect(leaf, method: str, key, handler: Callable) -> Iterator[Redirect]:
+    """Within the block, the call ``leaf.<method>(key, ...)`` goes to ``handler``.
 
-    A second call of the same method on the same leaf within the block raises
-    ``RedirectError``: one mapping write was expected to reach the leaf once.
+    Any other write call on ``leaf`` within the block (another method, another key, or
+    the same call a second time) raises ``RedirectError`` before touching anything: one
+    mapping write was expected to reach the leaf once, as ``key``.
     """
-    r = Redirect(leaf, method, handler)
+    r = Redirect(leaf, method, key, handler)
     token = _active.set(r)
     try:
         yield r
@@ -69,24 +85,34 @@ def redirect(leaf, method: str, handler: Callable) -> Iterator[Redirect]:
         _active.reset(token)
 
 
-def claim(leaf, method: str) -> Optional[Callable]:
-    """The handler redirecting ``leaf.<method>`` right now, or ``None``.
+def claim(leaf, method: str, key) -> Optional[Callable]:
+    """The handler redirecting ``leaf.<method>(key, ...)`` right now, or ``None``.
 
-    Called by a leaf at the top of the method. The returned callable runs the handler and
-    records its result.
+    Called by a leaf at the top of each of its ``WRITE_METHODS``. The returned callable
+    runs the handler and records its result or error.
     """
     r = _active.get()
-    if r is None or r.leaf is not leaf or r.method != method:
+    if r is None or r.leaf is not leaf:
         return None
-    if r.results:
+    if r.claimed:
+        outcome = "failed" if r.error is not None else "was performed"
         raise RedirectError(
-            f"A wrapping layer turned one write into several {method} calls on the "
-            "cosmodol store; refusing the extra one. The first was already performed."
+            f"A wrapping layer made a second {method} call ({key!r}) on the cosmodol "
+            f"store during one operation; refused. The first call ({r.key!r}) {outcome}."
+        )
+    if (method, key) != (r.method, r.key):
+        raise RedirectError(
+            f"A wrapping layer called {method}({key!r}) on the cosmodol store where "
+            f"the operation expected {r.method}({r.key!r}); refused before acting."
         )
 
     def run(*args):
-        r.results.append(None)  # claimed, even if the handler raises
-        r.results[-1] = r.handler(*args)
-        return r.results[-1]
+        r.claimed = True
+        try:
+            r.result = r.handler(*args)
+        except BaseException as e:
+            r.error = e
+            raise
+        return r.result
 
     return run

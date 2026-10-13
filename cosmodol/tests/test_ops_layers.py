@@ -171,7 +171,7 @@ def test_a_swallowed_write_is_loud():
 def test_a_multiplied_write_is_loud_and_a_batch_sends_nothing():
     c = _container()
     before = _state(c)
-    with pytest.raises(RedirectError, match="several"):
+    with pytest.raises(RedirectError, match="second"):
         batch_items(_Twice(_leaf(c)), [("upsert", "doc1", {"payload": "X"})])
     assert _state(c) == before
 
@@ -202,3 +202,67 @@ def test_patch_on_a_wrapped_store_needs_an_explicit_opt_in():
         batch_items(store, ops, unguarded_patch=True)
     with pytest.raises(NotImplementedError, match="patch"):  # unwrapped: no opt-in needed
         batch_items(_leaf(c), [("patch", "app_doc1", ops[0][2])])
+
+
+# ---------------------------------------------------------------------------
+# Adversarial-review regressions: the redirect is pinned to the expected leaf key
+# ---------------------------------------------------------------------------
+
+
+class _Companion(Store):
+    """Drops a companion resource before the requested one."""
+
+    def __delitem__(self, k):
+        del self.store["events"]
+        del self.store[k]
+
+
+class _Audit(Store):
+    """Writes an audit record before the requested item."""
+
+    def __setitem__(self, k, v):
+        self.store["app_log"] = {"payload": f"set {k}"}
+        self.store[k] = v
+
+
+class _Forgiving(Store):
+    def __setitem__(self, k, v):
+        try:
+            super().__setitem__(k, v)
+        except Exception:
+            pass
+
+
+def test_a_forced_delete_never_cascades_into_a_companion_resource():
+    raw = _db()
+    with pytest.raises(RedirectError, match="expected __delitem__"):
+        delete_container(_Companion(CosmosDatabase(raw)), "app_events", force=True)
+    assert [i["id"] for i in raw.containers["events"].items] == ["prod-0", "prod-1", "prod-2"]
+    assert sorted(raw.containers) == ["app_events", "events"]
+
+
+def test_replace_semantics_never_land_on_a_layers_other_key():
+    c = _container()
+    before = _state(c)
+    with pytest.raises(RedirectError, match="expected __setitem__"):
+        replace_item(_Audit(_leaf(c)), "app_doc1", {"payload": "X"})
+    assert _state(c) == before
+
+
+def test_an_error_a_layer_swallows_still_reaches_the_caller():
+    c = _container()
+    with pytest.raises(Exception, match="(?i)precondition|etag"):
+        replace_item(_Forgiving(_leaf(c)), "app_doc1", {"payload": "X"}, etag="stale")
+    assert _state(c)["app_doc1"] == "MINE"
+
+
+def test_a_subclass_scoping_by_contains_is_honoured():
+    class Scoped(CosmosItems):
+        def __contains__(self, k):
+            return k.startswith("app_") and super().__contains__(k)
+
+    c = _container()
+    store = Scoped(c, partition_key_value=PK, partition_key_path="/_pk")
+    with pytest.raises(KeyError):
+        replace_item(store, "doc1", {"payload": "X"})
+    assert _state(c)["doc1"] == "SOMEONE ELSE'S"

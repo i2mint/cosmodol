@@ -99,7 +99,7 @@ class CosmosDatabase(KvReader):
         return self.store_factory(c)
 
     def __setitem__(self, k, v):
-        if (handler := claim(self, "__setitem__")) is not None:
+        if (handler := claim(self, "__setitem__", k)) is not None:
             return handler(k, v)  # cosmodol.add_container / add_database
         raise TypeError(
             "Container creation does not go through __setitem__ (too parameter-rich). "
@@ -107,7 +107,7 @@ class CosmosDatabase(KvReader):
         )
 
     def __delitem__(self, k: str) -> None:
-        if (handler := claim(self, "__delitem__")) is not None:
+        if (handler := claim(self, "__delitem__", k)) is not None:
             return handler(k)  # a forced cosmodol.delete_container / delete_database
         try:
             c = self.database.get_container_client(k)
@@ -199,7 +199,7 @@ class CosmosAccount(KvReader):
         return self.database_factory(db)
 
     def __setitem__(self, k, v):
-        if (handler := claim(self, "__setitem__")) is not None:
+        if (handler := claim(self, "__setitem__", k)) is not None:
             return handler(k, v)  # cosmodol.add_container / add_database
         raise TypeError(
             "Database creation does not go through __setitem__ (too parameter-rich). "
@@ -207,7 +207,7 @@ class CosmosAccount(KvReader):
         )
 
     def __delitem__(self, k: str) -> None:
-        if (handler := claim(self, "__delitem__")) is not None:
+        if (handler := claim(self, "__delitem__", k)) is not None:
             return handler(k)  # a forced cosmodol.delete_container / delete_database
         try:
             db = self._client.get_database_client(k)

@@ -182,14 +182,14 @@ class CosmosItems(KvPersister):
         return self._maybe_strip(item)
 
     def __setitem__(self, k: str, v) -> None:
-        if (handler := claim(self, "__setitem__")) is not None:
+        if (handler := claim(self, "__setitem__", k)) is not None:
             return handler(k, v)  # an ops function, routed through every wrapper
         body = self._prepare_body(k, v)
         _item, hdrs = point_upsert(self.container, body)
         self._observe("set", hdrs)
 
     def __delitem__(self, k: str) -> None:
-        if (handler := claim(self, "__delitem__")) is not None:
+        if (handler := claim(self, "__delitem__", k)) is not None:
             return handler(k)
         if self.strict_keys:
             validate_cosmos_id(k)
