@@ -1,4 +1,0 @@
-cosmodol.testing
-================
-.. automodule:: cosmodol.testing
-   :members:

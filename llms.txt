@@ -1,0 +1,28 @@
+# cosmodol
+
+> Azure Cosmos DB Data Object Layer — dol-style Mapping interfaces over the NoSQL/Core API.
+
+
+## Pages
+
+- [cosmodol](index.html.md): Azure &#42;&#42;Cosmos DB&#42;&#42; Data Object Layer — access Cosmos DB through a &#96;dict&#96;-like
+- [API reference](api.html.md): | &#96;cosmodol&#96;   | Access Azure Cosmos DB (NoSQL/Core API) through a Mapping interface.   |
+- [cosmodol](_autosummary/cosmodol.html.md): Access Azure Cosmos DB (NoSQL/Core API) through a Mapping interface.
+- [cosmodol.base](_autosummary/cosmodol.base.html.md): Close-to-metal CRUD facade for Cosmos DB.
+- [cosmodol.connection](_autosummary/cosmodol.connection.html.md): Connection-layer for cosmodol.
+- [cosmodol.errors](_autosummary/cosmodol.errors.html.md): Custom exceptions and error-translation decorator for cosmodol.
+- [cosmodol.ops](_autosummary/cosmodol.ops.html.md): Key-taking operations, as free functions over the caller’s (possibly wrapped) store.
+- [cosmodol.recipes](_autosummary/cosmodol.recipes.html.md): Convenience wrappers and factories for cosmodol.
+- [cosmodol.stores](_autosummary/cosmodol.stores.html.md): Mapping stores over a Cosmos DB container.
+- [cosmodol.testing](_autosummary/cosmodol.testing.html.md): Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.
+- [cosmodol.trees](_autosummary/cosmodol.trees.html.md): Tree-shaped stores: mapping-of-databases and mapping-of-containers.
+- [For AI agents](ai-agents.html.md): &#96;cosmodol&#96; ships artifacts for coding agents alongside its code. This page lists
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-13 04:45 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+
+## Optional
+
+- [cosmodol.md](cosmodol.md): Complete documentation in a single file.
+
+## Build
+
+- [build_info.json](build_info.json): build provenance (commit, version, tool versions, whether the docs match the package)

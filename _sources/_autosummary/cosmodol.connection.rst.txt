@@ -1,0 +1,18 @@
+cosmodol.connection
+===================
+
+.. automodule:: cosmodol.connection
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_credential
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CosmosConnection
+   

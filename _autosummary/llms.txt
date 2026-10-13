@@ -1,0 +1,20 @@
+# cosmodol
+
+> Azure Cosmos DB Data Object Layer — dol-style Mapping interfaces over the NoSQL/Core API.
+
+
+## Pages in this subsection
+
+- [cosmodol](cosmodol.html.md): Access Azure Cosmos DB (NoSQL/Core API) through a Mapping interface.
+- [cosmodol.base](cosmodol.base.html.md): Close-to-metal CRUD facade for Cosmos DB.
+- [cosmodol.connection](cosmodol.connection.html.md): Connection-layer for cosmodol.
+- [cosmodol.errors](cosmodol.errors.html.md): Custom exceptions and error-translation decorator for cosmodol.
+- [cosmodol.ops](cosmodol.ops.html.md): Key-taking operations, as free functions over the caller’s (possibly wrapped) store.
+- [cosmodol.recipes](cosmodol.recipes.html.md): Convenience wrappers and factories for cosmodol.
+- [cosmodol.stores](cosmodol.stores.html.md): Mapping stores over a Cosmos DB container.
+- [cosmodol.testing](cosmodol.testing.html.md): Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.
+- [cosmodol.trees](cosmodol.trees.html.md): Tree-shaped stores: mapping-of-databases and mapping-of-containers.
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.

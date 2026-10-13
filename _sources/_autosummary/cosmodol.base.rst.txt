@@ -1,0 +1,24 @@
+cosmodol.base
+=============
+
+.. automodule:: cosmodol.base
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      batch
+      point_contains
+      point_delete
+      point_get
+      point_replace
+      point_upsert
+      query
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ResponseHeaders
+   

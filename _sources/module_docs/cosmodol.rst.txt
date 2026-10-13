@@ -1,4 +1,0 @@
-cosmodol
-========
-.. automodule:: cosmodol
-   :members:

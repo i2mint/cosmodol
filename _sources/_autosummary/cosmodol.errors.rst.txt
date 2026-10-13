@@ -1,0 +1,32 @@
+cosmodol.errors
+===============
+
+.. automodule:: cosmodol.errors
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      translate_cosmos_errors
+      validate_cosmos_id
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MovedToFunction
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ContainerNotEmptyError
+      ContainerNotFoundError
+      CosmosThrottleError
+      DatabaseNotEmptyError
+      DatabaseNotFoundError
+      ItemAlreadyExistsError
+      ItemNotFoundError
+      KeyMismatchError
+   

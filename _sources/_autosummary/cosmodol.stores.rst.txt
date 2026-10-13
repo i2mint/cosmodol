@@ -1,0 +1,13 @@
+cosmodol.stores
+===============
+
+.. automodule:: cosmodol.stores
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CosmosItems
+      CosmosPartitionedItems
+   

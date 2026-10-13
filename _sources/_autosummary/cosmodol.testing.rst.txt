@@ -1,0 +1,21 @@
+cosmodol.testing
+================
+
+.. automodule:: cosmodol.testing
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      cosmos_emulator
+      docker_available
+      emulator_is_running
+      mk_emulator_connection
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FakeContainerProxy
+   

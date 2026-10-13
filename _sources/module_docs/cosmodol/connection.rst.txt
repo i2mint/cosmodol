@@ -1,4 +1,0 @@
-cosmodol.connection
-===================
-.. automodule:: cosmodol.connection
-   :members:

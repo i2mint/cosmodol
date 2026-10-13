@@ -1,0 +1,1162 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="cosmodol.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="cosmodol.html.md">
+<link rel="describedby" href="llms.txt"><link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="cosmodol.base" href="cosmodol.base.html"><link rel="prev" title="API reference" href="../api.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>cosmodol - cosmodol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f0f0f0;
+  --color-code-foreground: black;
+  --color-brand-primary: #823774;
+  --color-brand-content: #823774;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #ea97d8;
+  --color-brand-content: #ea97d8;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #ea97d8;
+  --color-brand-content: #ea97d8;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">cosmodol</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">cosmodol</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../api.html">API reference</a><input aria-label="Toggle navigation of API reference" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">cosmodol</a><input aria-label="Toggle navigation of cosmodol" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.base.html">cosmodol.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.connection.html">cosmodol.connection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.errors.html">cosmodol.errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.ops.html">cosmodol.ops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.stores.html">cosmodol.stores</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.testing.html">cosmodol.testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.trees.html">cosmodol.trees</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ai-agents.html">For AI agents</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/_autosummary/cosmodol.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-cosmodol">
+<span id="cosmodol"></span><h1>cosmodol<a class="headerlink" href="#module-cosmodol" title="Link to this heading">¶</a></h1>
+<p>Access Azure Cosmos DB (NoSQL/Core API) through a Mapping interface.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cosmodol</span></code> exposes Azure Cosmos DB as <code class="docutils literal notranslate"><span class="pre">dol</span></code>-style <code class="docutils literal notranslate"><span class="pre">Mapping</span></code> /
+<code class="docutils literal notranslate"><span class="pre">MutableMapping</span></code> interfaces, layered over the official <code class="docutils literal notranslate"><span class="pre">azure-cosmos</span></code> SDK.</p>
+<p>Quick start:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol</span><span class="w"> </span><span class="kn">import</span> <span class="n">cosmos_store</span>
+
+<span class="n">store</span> <span class="o">=</span> <span class="n">cosmos_store</span><span class="p">(</span>
+    <span class="n">connection_string</span><span class="o">=</span><span class="s2">"AccountEndpoint=https://localhost:8081/;AccountKey=..."</span><span class="p">,</span>
+    <span class="n">database</span><span class="o">=</span><span class="s2">"mydb"</span><span class="p">,</span>
+    <span class="n">container</span><span class="o">=</span><span class="s2">"mycontainer"</span><span class="p">,</span>
+    <span class="n">partition_key_value</span><span class="o">=</span><span class="s2">"tenant-X"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">store</span><span class="p">[</span><span class="s2">"k1"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Alice"</span><span class="p">,</span> <span class="s2">"age"</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
+<span class="n">store</span><span class="p">[</span><span class="s2">"k1"</span><span class="p">]</span>              <span class="c1"># → {"id": "k1", "&lt;pk&gt;": "tenant-X", "name": "Alice", "age": 30}</span>
+<span class="s2">"k1"</span> <span class="ow">in</span> <span class="n">store</span>            <span class="c1"># → True</span>
+<span class="k">del</span> <span class="n">store</span><span class="p">[</span><span class="s2">"k1"</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>See <code class="docutils literal notranslate"><span class="pre">misc/docs/architecture.md</span></code> for the layered design.</p>
+<p>If your Cosmos account was provisioned with the <strong>MongoDB API</strong>, use <code class="docutils literal notranslate"><span class="pre">pymongo</span></code> +
+<code class="docutils literal notranslate"><span class="pre">mongodol</span></code> directly — this package only targets the NoSQL/Core API.</p>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.resolve_credential" title="cosmodol.resolve_credential"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_credential</span></code></a>(*[, credential, ...])</p></td>
+<td><p>Resolve a credential into a normalized form that can build a <code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.batch" title="cosmodol.batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">batch</span></code></a>(container, operations, partition_key)</p></td>
+<td><p>Transactional batch within one logical partition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.point_contains" title="cosmodol.point_contains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_contains</span></code></a>(container, id, partition_key)</p></td>
+<td><p>Existence check via point read.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.point_delete" title="cosmodol.point_delete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_delete</span></code></a>(container, id, partition_key, *)</p></td>
+<td><p>Point delete.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.point_get" title="cosmodol.point_get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_get</span></code></a>(container, id, partition_key)</p></td>
+<td><p>Point read of one item.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.point_replace" title="cosmodol.point_replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_replace</span></code></a>(container, id, body, ...[, etag])</p></td>
+<td><p>Full replace of an item.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.point_upsert" title="cosmodol.point_upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point_upsert</span></code></a>(container, body, *[, etag])</p></td>
+<td><p>Insert-or-replace an item.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.query" title="cosmodol.query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query</span></code></a>(container, sql, *[, parameters, ...])</p></td>
+<td><p>Run a SQL query.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.translate_cosmos_errors" title="cosmodol.translate_cosmos_errors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translate_cosmos_errors</span></code></a>(*[, key_arg, ...])</p></td>
+<td><p>Decorator: translate Cosmos SDK exceptions into <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> subclasses.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.validate_cosmos_id" title="cosmodol.validate_cosmos_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_cosmos_id</span></code></a>(k)</p></td>
+<td><p>Raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if <code class="docutils literal notranslate"><span class="pre">k</span></code> is not a valid Cosmos item <code class="docutils literal notranslate"><span class="pre">id</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.add_container" title="cosmodol.add_container"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_container</span></code></a>(db_store, name, *[, ...])</p></td>
+<td><p>Create a container named <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller's key space) in <code class="docutils literal notranslate"><span class="pre">db_store</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.add_database" title="cosmodol.add_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_database</span></code></a>(account_store, name, *[, ...])</p></td>
+<td><p>Create database <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller's key space).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.batch_items" title="cosmodol.batch_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">batch_items</span></code></a>(store, operations)</p></td>
+<td><p>Transactional batch within the store's partition, in the caller's key space.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.delete_container" title="cosmodol.delete_container"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_container</span></code></a>(db_store, name, *[, force])</p></td>
+<td><p>Drop container <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller's key space); <code class="docutils literal notranslate"><span class="pre">force</span></code> empties it first.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.delete_database" title="cosmodol.delete_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_database</span></code></a>(account_store, name, *[, force])</p></td>
+<td><p>Drop database <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller's key space); <code class="docutils literal notranslate"><span class="pre">force</span></code> drops its containers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.partition" title="cosmodol.partition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">partition</span></code></a>(store, pk_value, *[, wrap])</p></td>
+<td><p>Narrow a <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code> to one partition; zero round-trips.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.replace_item" title="cosmodol.replace_item"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_item</span></code></a>(store, k, v, *[, etag])</p></td>
+<td><p>Full replace of the existing item at key <code class="docutils literal notranslate"><span class="pre">k</span></code>, optionally ETag-conditional.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.cosmos_store" title="cosmodol.cosmos_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cosmos_store</span></code></a>(*, database, container[, ...])</p></td>
+<td><p>Build a ready-to-use Cosmos store (<code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> or <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.strip_system_fields" title="cosmodol.strip_system_fields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strip_system_fields</span></code></a>(item)</p></td>
+<td><p>Return <code class="docutils literal notranslate"><span class="pre">item</span></code> with Cosmos system fields removed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.CosmosConnection" title="cosmodol.CosmosConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CosmosConnection</span></code></a>([credential, ...])</p></td>
+<td><p>Holds a resolved credential and a lazy <code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.ResponseHeaders" title="cosmodol.ResponseHeaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a>(request_charge, etag)</p></td>
+<td><p>Subset of Cosmos response headers we surface for observability.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.CosmosItems" title="cosmodol.CosmosItems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CosmosItems</span></code></a>(container, *, partition_key_value)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MutableMapping[str,</span> <span class="pre">dict]</span></code> over one fixed partition of a Cosmos container.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.CosmosPartitionedItems" title="cosmodol.CosmosPartitionedItems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code></a>(container, *[, ...])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MutableMapping[tuple[str,</span> <span class="pre">str],</span> <span class="pre">dict]</span></code> over all partitions of a container.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.CosmosAccount" title="cosmodol.CosmosAccount"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CosmosAccount</span></code></a>([connection, database_factory])</p></td>
+<td><p>Mapping of database name → <code class="docutils literal notranslate"><span class="pre">CosmosDatabase</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.CosmosDatabase" title="cosmodol.CosmosDatabase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CosmosDatabase</span></code></a>(database, *[, connection, ...])</p></td>
+<td><p>Mapping of container name → <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code> (or store-wrapped form).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.ContainerNotEmptyError" title="cosmodol.ContainerNotEmptyError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContainerNotEmptyError</span></code></a></p></td>
+<td><p>Raised on <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">db_store[name]</span></code> when the container has items.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.ContainerNotFoundError" title="cosmodol.ContainerNotFoundError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContainerNotFoundError</span></code></a></p></td>
+<td><p>Raised when a Cosmos container does not exist.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.CosmosThrottleError" title="cosmodol.CosmosThrottleError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CosmosThrottleError</span></code></a></p></td>
+<td><p>Wraps <code class="docutils literal notranslate"><span class="pre">CosmosHttpResponseError</span></code> with HTTP 429 (RU exhaustion).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.DatabaseNotEmptyError" title="cosmodol.DatabaseNotEmptyError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatabaseNotEmptyError</span></code></a></p></td>
+<td><p>Raised on <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">account_store[name]</span></code> when the database has containers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.DatabaseNotFoundError" title="cosmodol.DatabaseNotFoundError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatabaseNotFoundError</span></code></a></p></td>
+<td><p>Raised when a Cosmos database does not exist.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.ItemAlreadyExistsError" title="cosmodol.ItemAlreadyExistsError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ItemAlreadyExistsError</span></code></a></p></td>
+<td><p>Raised on strict-create attempts when the item already exists.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.ItemNotFoundError" title="cosmodol.ItemNotFoundError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code></a></p></td>
+<td><p>Raised when an item does not exist for a (partition_key, id).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.KeyMismatchError" title="cosmodol.KeyMismatchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KeyMismatchError</span></code></a></p></td>
+<td><p>Raised when a written body's <code class="docutils literal notranslate"><span class="pre">id</span></code> (or partition-key value) disagrees with the inferred value (from the dict key).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.ContainerNotEmptyError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">ContainerNotEmptyError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#ContainerNotEmptyError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ContainerNotEmptyError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>Raised on <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">db_store[name]</span></code> when the container has items. See
+<code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §8.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.ContainerNotFoundError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">ContainerNotFoundError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#ContainerNotFoundError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ContainerNotFoundError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></a></p>
+<p>Raised when a Cosmos container does not exist.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.CosmosAccount">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">CosmosAccount</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">database_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/trees.html#CosmosAccount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosAccount" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KvReader</span></code></p>
+<p>Mapping of database name → <code class="docutils literal notranslate"><span class="pre">CosmosDatabase</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">__setitem__</span></code> is disabled — use <code class="docutils literal notranslate"><span class="pre">cosmodol.add_database(account_store,</span> <span class="pre">name,</span> <span class="pre">...)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">__delitem__</span></code> refuses non-empty databases; use
+<code class="docutils literal notranslate"><span class="pre">cosmodol.delete_database(account_store,</span> <span class="pre">name,</span> <span class="pre">force=True)</span></code>.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.CosmosConnection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">CosmosConnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">credential</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consistency_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/connection.html#CosmosConnection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosConnection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Holds a resolved credential and a lazy <code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code>.</p>
+<p>This is the dependency-injection seam for the package. Tests construct one pointing
+at the emulator without touching any store class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>credential</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</span>) – explicit credential object or account-key string.</p></li>
+<li><p><strong>connection_string</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – full <code class="docutils literal notranslate"><span class="pre">AccountEndpoint=...;AccountKey=...</span></code> string.</p></li>
+<li><p><strong>endpoint</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Cosmos endpoint URL (with or without credential).</p></li>
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – account master key.</p></li>
+<li><p><strong>consistency_level</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – optional override; defaults to inheriting the account default.</p></li>
+<li><p><strong>client_kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span>) – extra kwargs forwarded to <code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="cosmodol.CosmosConnection.client">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">client</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">CosmosClient</span></span><a class="headerlink" href="#cosmodol.CosmosConnection.client" title="Link to this definition">¶</a></dt>
+<dd><p>The lazily-constructed <code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code>. Cached for the connection’s lifetime.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.CosmosConnection.from_anything">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_anything</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/connection.html#CosmosConnection.from_anything"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosConnection.from_anything" title="Link to this definition">¶</a></dt>
+<dd><p>Convenience: build a <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> from a thing-or-spec.</p>
+<p>Accepts:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> (returned as-is)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code> (wrapped without further resolution)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">str</span></code> (connection string)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> (passed as kwargs)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> (defer to env / AAD)</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="cosmodol.connection.html#cosmodol.connection.CosmosConnection" title="cosmodol.connection.CosmosConnection"><code class="xref py py-class docutils literal notranslate"><span class="pre">CosmosConnection</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.CosmosDatabase">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">CosmosDatabase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/trees.html#CosmosDatabase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosDatabase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KvReader</span></code></p>
+<p>Mapping of container name → <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code> (or store-wrapped form).</p>
+<p><code class="docutils literal notranslate"><span class="pre">__setitem__</span></code> is disabled — use <code class="docutils literal notranslate"><span class="pre">cosmodol.add_container(db_store,</span> <span class="pre">name,</span> <span class="pre">...)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">__delitem__</span></code> refuses non-empty containers; use
+<code class="docutils literal notranslate"><span class="pre">cosmodol.delete_container(db_store,</span> <span class="pre">name,</span> <span class="pre">force=True)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>database</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DatabaseProxy</span></code>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Either an existing <code class="docutils literal notranslate"><span class="pre">DatabaseProxy</span></code>, a database name string (resolved
+via <code class="docutils literal notranslate"><span class="pre">connection</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> (use <code class="docutils literal notranslate"><span class="pre">connection.database_name</span></code>).</p></li>
+<li><p><strong>connection</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> (or anything <code class="docutils literal notranslate"><span class="pre">from_anything</span></code> accepts).</p></li>
+<li><p><strong>store_factory</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]</span>) – Optional callable <code class="docutils literal notranslate"><span class="pre">(ContainerProxy)</span> <span class="pre">-&gt;</span> <span class="pre">Mapping</span></code> used to wrap
+the value returned by <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code>. Defaults to passing the
+<code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code> through.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.CosmosItems">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">CosmosItems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_partition_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip_system_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_ru</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/stores.html#CosmosItems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosItems" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KvPersister</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">MutableMapping[str,</span> <span class="pre">dict]</span></code> over one fixed partition of a Cosmos container.</p>
+<p>Keys are item <code class="docutils literal notranslate"><span class="pre">id</span></code> strings; values are JSON-dict items. The store auto-injects
+<code class="docutils literal notranslate"><span class="pre">id</span></code> and the partition-key property on writes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerProxy</span></code>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>]</span>) – An already-built <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code> or a <code class="docutils literal notranslate"><span class="pre">(database,</span> <span class="pre">container)</span></code>
+tuple / <code class="docutils literal notranslate"><span class="pre">{&quot;database&quot;:</span> <span class="pre">...,</span> <span class="pre">&quot;container&quot;:</span> <span class="pre">...}</span></code> dict to resolve via
+<code class="docutils literal notranslate"><span class="pre">connection</span></code>.</p></li>
+<li><p><strong>partition_key_value</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – The single partition-key value this store is scoped to.</p></li>
+<li><p><strong>partition_key_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Path of the partition-key property in items (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;/_pk&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;/id&quot;</span></code>). Read from the container if absent.</p></li>
+<li><p><strong>connection</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> (or anything <code class="docutils literal notranslate"><span class="pre">from_anything</span></code> accepts).
+Ignored if <code class="docutils literal notranslate"><span class="pre">container</span></code> is a <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code>.</p></li>
+<li><p><strong>inject_id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – If True, auto-inject <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;</span></code> into bodies on writes.</p></li>
+<li><p><strong>inject_partition_key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – If True, auto-inject the partition-key property into bodies.</p></li>
+<li><p><strong>strict_keys</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Validate <code class="docutils literal notranslate"><span class="pre">id</span></code> chars + length on writes.</p></li>
+<li><p><strong>strip_system_fields</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Strip <code class="docutils literal notranslate"><span class="pre">_etag/_ts/_rid/_self/_attachments</span></code> from returned items.</p></li>
+<li><p><strong>record_ru</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]]</span>) – Optional callback <code class="docutils literal notranslate"><span class="pre">(op_name,</span> <span class="pre">ru)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code> invoked after each
+metal-layer op. Useful for Prometheus / logging.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.CosmosItems.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sql</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/stores.html#CosmosItems.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosItems.query" title="Link to this definition">¶</a></dt>
+<dd><p>Run a SQL query scoped to this partition. Yields raw item dicts (no stripping).</p>
+<p>SQL addresses the stored documents, so this speaks the leaf’s language on both
+ends: ids in the results are Cosmos ids, and documents are as stored. Neither is
+passed through any <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper around this store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.CosmosPartitionedItems">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">CosmosPartitionedItems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inject_partition_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip_system_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_ru</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len_via_query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent_full_scan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/stores.html#CosmosPartitionedItems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosPartitionedItems" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KvPersister</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">MutableMapping[tuple[str,</span> <span class="pre">str],</span> <span class="pre">dict]</span></code> over all partitions of a container.</p>
+<p>Keys are <code class="docutils literal notranslate"><span class="pre">(partition_key_value,</span> <span class="pre">id)</span></code> tuples. Use <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> instead if you
+have a fixed partition.</p>
+<p>Iteration is cross-partition; the first call emits a <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code> (silence with
+<code class="docutils literal notranslate"><span class="pre">silent_full_scan=True</span></code>). <code class="docutils literal notranslate"><span class="pre">__len__</span></code> is <strong>not</strong> implemented by default; opt-in via
+<code class="docutils literal notranslate"><span class="pre">len_via_query=True</span></code>. See <code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §§4, 6.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerProxy</span></code>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>]</span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>partition_key_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Path of the partition-key property in items. Read from the
+container if absent.</p></li>
+<li><p><strong>connection</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>inject_id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>inject_partition_key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>strict_keys</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>strip_system_fields</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>record_ru</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]]</span>) – As in <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>len_via_query</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – If True, <code class="docutils literal notranslate"><span class="pre">__len__</span></code> runs a (cross-partition) COUNT query.</p></li>
+<li><p><strong>silent_full_scan</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – If True, <code class="docutils literal notranslate"><span class="pre">__iter__</span></code> does not emit the cross-partition warning.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="cosmodol.CosmosPartitionedItems.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sql</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_partition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/stores.html#CosmosPartitionedItems.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosPartitionedItems.query" title="Link to this definition">¶</a></dt>
+<dd><p>Pass-through to <code class="docutils literal notranslate"><span class="pre">base.query</span></code>: raw Cosmos ids and documents, as for
+<code class="docutils literal notranslate"><span class="pre">CosmosItems.query</span></code>; <code class="docutils literal notranslate"><span class="pre">partition_key</span></code> is a stored partition-key value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.CosmosThrottleError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">CosmosThrottleError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#CosmosThrottleError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.CosmosThrottleError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>Wraps <code class="docutils literal notranslate"><span class="pre">CosmosHttpResponseError</span></code> with HTTP 429 (RU exhaustion).</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.DatabaseNotEmptyError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">DatabaseNotEmptyError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#DatabaseNotEmptyError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.DatabaseNotEmptyError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>Raised on <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">account_store[name]</span></code> when the database has containers. See
+<code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §8.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.DatabaseNotFoundError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">DatabaseNotFoundError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#DatabaseNotFoundError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.DatabaseNotFoundError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></a></p>
+<p>Raised when a Cosmos database does not exist.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.ItemAlreadyExistsError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">ItemAlreadyExistsError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#ItemAlreadyExistsError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ItemAlreadyExistsError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></a></p>
+<p>Raised on strict-create attempts when the item already exists.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.ItemNotFoundError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">ItemNotFoundError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#ItemNotFoundError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ItemNotFoundError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></a></p>
+<p>Raised when an item does not exist for a (partition_key, id).</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.KeyMismatchError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">KeyMismatchError</span></span><a class="reference internal" href="../_modules/cosmodol/errors.html#KeyMismatchError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.KeyMismatchError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Raised when a written body’s <code class="docutils literal notranslate"><span class="pre">id</span></code> (or partition-key value) disagrees with the
+inferred value (from the dict key). See <code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §9.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cosmodol.ResponseHeaders">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">ResponseHeaders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_charge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#ResponseHeaders"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ResponseHeaders" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
+<p>Subset of Cosmos response headers we surface for observability.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cosmodol.ResponseHeaders.request_charge">
+<span class="sig-name descname"><span class="pre">request_charge</span></span><a class="headerlink" href="#cosmodol.ResponseHeaders.request_charge" title="Link to this definition">¶</a></dt>
+<dd><p>RU consumed by the operation. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the emulator (which
+does not populate this header) was the backend.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cosmodol.ResponseHeaders.etag">
+<span class="sig-name descname"><span class="pre">etag</span></span><a class="headerlink" href="#cosmodol.ResponseHeaders.etag" title="Link to this definition">¶</a></dt>
+<dd><p>ETag of the (created / read / replaced) item, when applicable.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">etag</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">request_charge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.add_container">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">add_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">throughput</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexing_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_key_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conflict_resolution_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#add_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.add_container" title="Link to this definition">¶</a></dt>
+<dd><p>Create a container named <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space) in <code class="docutils literal notranslate"><span class="pre">db_store</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db_store</strong> – A <code class="docutils literal notranslate"><span class="pre">CosmosDatabase</span></code>, or a <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper around one.</p></li>
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Container name, as <code class="docutils literal notranslate"><span class="pre">db_store[name]</span></code> would take it.</p></li>
+<li><p><strong>partition_key_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Partition-key path (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;/id&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;/tenantId&quot;</span></code>).
+Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;/id&quot;</span></code> per <code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §3.</p></li>
+<li><p><strong>throughput</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Provisioned RU/s (e.g. 400). <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the database’s
+shared throughput if any, otherwise the account default.</p></li>
+<li><p><strong>indexing_policy</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span>) – Standard Cosmos container kwargs.</p></li>
+<li><p><strong>default_ttl</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – Standard Cosmos container kwargs.</p></li>
+<li><p><strong>unique_key_policy</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span>) – Standard Cosmos container kwargs.</p></li>
+<li><p><strong>conflict_resolution_policy</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span>) – Standard Cosmos container kwargs.</p></li>
+<li><p><strong>**extra</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">DatabaseProxy.create_container</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The SDK’s <code class="docutils literal notranslate"><span class="pre">ContainerProxy</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.add_database">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">add_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">account_store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">throughput</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#add_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.add_database" title="Link to this definition">¶</a></dt>
+<dd><p>Create database <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space).</p>
+<p>Returns the leaf’s value for it (its <code class="docutils literal notranslate"><span class="pre">database_factory</span></code> output, a
+<code class="docutils literal notranslate"><span class="pre">CosmosDatabase</span></code> by default), not <code class="docutils literal notranslate"><span class="pre">account_store[name]</span></code>: a wrapper that does not
+expose the new name would otherwise raise after the database was created.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.batch">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.batch" title="Link to this definition">¶</a></dt>
+<dd><p>Transactional batch within one logical partition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operations</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>]</span>) – List of <code class="docutils literal notranslate"><span class="pre">(op_name,</span> <span class="pre">args_tuple,</span> <span class="pre">kwargs_dict)</span></code> triples. Cosmos op
+names: <code class="docutils literal notranslate"><span class="pre">&quot;create&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;upsert&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;replace&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;patch&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;read&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;delete&quot;</span></code>. ≤ 100 ops, ≤ 1.2 MB total.</p></li>
+<li><p><strong>partition_key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – All ops must share this partition-key value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of per-op result dicts as returned by the SDK.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.batch_items">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">batch_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#batch_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.batch_items" title="Link to this definition">¶</a></dt>
+<dd><p>Transactional batch within the store’s partition, in the caller’s key space.</p>
+<p>Each operation is <code class="docutils literal notranslate"><span class="pre">(op,</span> <span class="pre">key)</span></code> or <code class="docutils literal notranslate"><span class="pre">(op,</span> <span class="pre">key,</span> <span class="pre">value)</span></code> (<code class="docutils literal notranslate"><span class="pre">op</span></code> one of
+<code class="docutils literal notranslate"><span class="pre">BATCH_OPS</span></code>), optionally followed by a dict of per-operation SDK keyword arguments
+such as <code class="docutils literal notranslate"><span class="pre">{&quot;if_match_etag&quot;:</span> <span class="pre">etag}</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">"upsert"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"v"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}),</span> <span class="p">(</span><span class="s2">"replace"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"v"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}),</span> <span class="p">(</span><span class="s2">"delete"</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Keys (and values, except <code class="docutils literal notranslate"><span class="pre">patch</span></code> operation lists) are mapped down to the leaf exactly
+as <code class="docutils literal notranslate"><span class="pre">replace_item</span></code> maps them, and bodies get the leaf’s usual <code class="docutils literal notranslate"><span class="pre">id</span></code> /
+partition-key injection. On a wrapped store, every key a <code class="docutils literal notranslate"><span class="pre">read</span></code>, <code class="docutils literal notranslate"><span class="pre">replace</span></code>,
+<code class="docutils literal notranslate"><span class="pre">patch</span></code> or <code class="docutils literal notranslate"><span class="pre">delete</span></code> targets must be in the store (one point read each), unless an
+earlier <code class="docutils literal notranslate"><span class="pre">create</span></code>/<code class="docutils literal notranslate"><span class="pre">upsert</span></code> of the same batch makes it. The SDK’s raw
+<code class="docutils literal notranslate"><span class="pre">(op,</span> <span class="pre">args,</span> <span class="pre">kwargs)</span></code> triples are not accepted here, because the ids inside them are
+opaque to any key mapping; use <code class="docutils literal notranslate"><span class="pre">cosmodol.batch(container,</span> <span class="pre">triples,</span> <span class="pre">partition_key)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.cosmos_store">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">cosmos_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">database</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">credential</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_codec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip_system_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/recipes.html#cosmos_store"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.cosmos_store" title="Link to this definition">¶</a></dt>
+<dd><p>Build a ready-to-use Cosmos store (<code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> or <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code>).</p>
+<p>The store flavor is chosen based on which partition-key kwarg is passed:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">partition_key_value=...</span></code>  → <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> (keys = id strings, fixed partition).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">partition_key_path=...</span></code>   → <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code> (keys = (pk, id) tuples).</p></li>
+<li><p>Neither given                → raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>database</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Database name.</p></li>
+<li><p><strong>container</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Container name.</p></li>
+<li><p><strong>connection</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="cosmodol.connection.html#cosmodol.connection.CosmosConnection" title="cosmodol.connection.CosmosConnection"><code class="xref py py-class docutils literal notranslate"><span class="pre">CosmosConnection</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</span>) – A <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> (or anything <code class="docutils literal notranslate"><span class="pre">from_anything</span></code> accepts) to
+reuse a client. Mutually exclusive with explicit credential kwargs.</p></li>
+<li><p><strong>credential</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code>
+when <code class="docutils literal notranslate"><span class="pre">connection</span></code> is None.</p></li>
+<li><p><strong>connection_string</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code>
+when <code class="docutils literal notranslate"><span class="pre">connection</span></code> is None.</p></li>
+<li><p><strong>endpoint</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code>
+when <code class="docutils literal notranslate"><span class="pre">connection</span></code> is None.</p></li>
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code>
+when <code class="docutils literal notranslate"><span class="pre">connection</span></code> is None.</p></li>
+<li><p><strong>partition_key_value</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – Fixed partition key value → returns <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>.</p></li>
+<li><p><strong>partition_key_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Partition key property path → returns <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code>.</p></li>
+<li><p><strong>value_codec</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]</span>) – A decorator that, given a class, returns a wrapped class. Typically
+a partially-applied <code class="docutils literal notranslate"><span class="pre">dol.wrap_kvs(...)</span></code>.</p></li>
+<li><p><strong>strip_system_fields</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Strip Cosmos system fields from returned items.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> or <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code> instance, possibly codec-wrapped.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.delete_container">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">delete_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#delete_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.delete_container" title="Link to this definition">¶</a></dt>
+<dd><p>Drop container <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space); <code class="docutils literal notranslate"><span class="pre">force</span></code> empties it first.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">force</span></code> this is <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">db_store[name]</span></code>, which refuses a non-empty container.
+With <code class="docutils literal notranslate"><span class="pre">force=True</span></code> every item is deleted, one point delete each, and then the
+container is dropped. Not recoverable without a Cosmos backup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.delete_database">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">delete_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">account_store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#delete_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.delete_database" title="Link to this definition">¶</a></dt>
+<dd><p>Drop database <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space); <code class="docutils literal notranslate"><span class="pre">force</span></code> drops its containers.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">force</span></code> this is <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">account_store[name]</span></code>, which refuses a non-empty
+database. Not recoverable without a Cosmos backup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.partition">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#partition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.partition" title="Link to this definition">¶</a></dt>
+<dd><p>Narrow a <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code> to one partition; zero round-trips.</p>
+<p>On an unwrapped store this returns a <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code> sharing the parent’s settings.</p>
+<p>A wrapped parent’s transforms cannot be carried onto the child automatically (the
+parent’s keys are <code class="docutils literal notranslate"><span class="pre">(pk,</span> <span class="pre">id)</span></code> tuples, the child’s are ids), so a wrapped store is
+refused unless you say how to wrap the child:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">partition</span><span class="p">(</span><span class="n">redacted_store</span><span class="p">,</span> <span class="s2">"tenant-1"</span><span class="p">,</span> <span class="n">wrap</span><span class="o">=</span><span class="n">my_value_codec</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>store</strong> – A <code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code>, or a <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper around one.</p></li>
+<li><p><strong>pk_value</strong> – The partition-key value, as stored (not passed through any key codec).</p></li>
+<li><p><strong>wrap</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]</span>) – Applied to the child store before it is returned. Required when <code class="docutils literal notranslate"><span class="pre">store</span></code>
+is wrapped; <code class="docutils literal notranslate"><span class="pre">wrap=lambda</span> <span class="pre">s:</span> <span class="pre">s</span></code> explicitly asks for the bare child.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.point_contains">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">point_contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#point_contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.point_contains" title="Link to this definition">¶</a></dt>
+<dd><p>Existence check via point read. <code class="docutils literal notranslate"><span class="pre">True/False</span></code>. Never raises <code class="docutils literal notranslate"><span class="pre">KeyError</span></code>.</p>
+<p>Cheaper than a <code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">VALUE</span> <span class="pre">COUNT(1)</span></code> query — ~1 RU vs ≥ 2.3 RU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference internal" href="cosmodol.base.html#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.point_delete">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">point_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#point_delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.point_delete" title="Link to this definition">¶</a></dt>
+<dd><p>Point delete. Raises <code class="docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code> on missing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="cosmodol.base.html#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.point_get">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">point_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#point_get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.point_get" title="Link to this definition">¶</a></dt>
+<dd><p>Point read of one item. ~1 RU/KB. Raises <code class="docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code> on missing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="cosmodol.base.html#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.point_replace">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">point_replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#point_replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.point_replace" title="Link to this definition">¶</a></dt>
+<dd><p>Full replace of an item. With <code class="docutils literal notranslate"><span class="pre">etag</span></code>, performs an If-Match conditional write.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="cosmodol.base.html#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.point_upsert">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">point_upsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#point_upsert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.point_upsert" title="Link to this definition">¶</a></dt>
+<dd><p>Insert-or-replace an item. <code class="docutils literal notranslate"><span class="pre">id</span></code> and the partition-key value are extracted from
+<code class="docutils literal notranslate"><span class="pre">body</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">etag</span></code> parameter accepted for symmetry but Cosmos does not honor it on
+<code class="docutils literal notranslate"><span class="pre">upsert_item</span></code>; use <code class="docutils literal notranslate"><span class="pre">point_replace</span></code> for ETag-conditional writes.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>, <a class="reference internal" href="cosmodol.base.html#cosmodol.base.ResponseHeaders" title="cosmodol.base.ResponseHeaders"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.query">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sql</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_partition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_item_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/base.html#query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.query" title="Link to this definition">¶</a></dt>
+<dd><p>Run a SQL query. Yields dicts.</p>
+<p>Either pass <code class="docutils literal notranslate"><span class="pre">partition_key=</span></code> (cheap, single-partition) or
+<code class="docutils literal notranslate"><span class="pre">cross_partition=True</span></code> (RU scales with data). One of the two is required by Cosmos.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.replace_item">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">replace_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">etag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#replace_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.replace_item" title="Link to this definition">¶</a></dt>
+<dd><p>Full replace of the existing item at key <code class="docutils literal notranslate"><span class="pre">k</span></code>, optionally ETag-conditional.</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code> (an upsert), this fails with <code class="docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code> if the item
+does not exist, and with a precondition error if <code class="docutils literal notranslate"><span class="pre">etag</span></code> no longer matches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>store</strong> – A <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>, or any <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper around one. <code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are in
+the <em>caller’s</em> key and value space; they are mapped down to the leaf.</p></li>
+<li><p><strong>k</strong> – The key, as <code class="docutils literal notranslate"><span class="pre">store[k]</span></code> would take it.</p></li>
+<li><p><strong>v</strong> – The value, as <code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code> would take it.</p></li>
+<li><p><strong>etag</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – If given, only replace when the stored item’s <code class="docutils literal notranslate"><span class="pre">_etag</span></code> still equals it.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The stored document as Cosmos returned it (leaf form; system fields stripped if the
+leaf strips them).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.resolve_credential">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">resolve_credential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">credential</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/connection.html#resolve_credential"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.resolve_credential" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve a credential into a normalized form that can build a <code class="docutils literal notranslate"><span class="pre">CosmosClient</span></code>.</p>
+<p>Cascade (first hit wins):</p>
+<ol class="arabic simple">
+<li><p>Explicit <code class="docutils literal notranslate"><span class="pre">credential=</span></code> (with <code class="docutils literal notranslate"><span class="pre">endpoint=</span></code> for the URL)</p></li>
+<li><p>Explicit <code class="docutils literal notranslate"><span class="pre">connection_string=</span></code></p></li>
+<li><p>Explicit <code class="docutils literal notranslate"><span class="pre">endpoint=</span></code> + <code class="docutils literal notranslate"><span class="pre">key=</span></code> (or just <code class="docutils literal notranslate"><span class="pre">endpoint=</span></code> + AAD)</p></li>
+<li><p>Env var <code class="docutils literal notranslate"><span class="pre">AZURE_COSMOS_CONNECTION_STRING</span></code></p></li>
+<li><p>Env vars <code class="docutils literal notranslate"><span class="pre">AZURE_COSMOS_ENDPOINT</span></code> + <code class="docutils literal notranslate"><span class="pre">AZURE_COSMOS_KEY</span></code></p></li>
+<li><p>Env var <code class="docutils literal notranslate"><span class="pre">AZURE_COSMOS_ENDPOINT</span></code> alone + <code class="docutils literal notranslate"><span class="pre">DefaultAzureCredential</span></code></p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">{&quot;url&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;credential&quot;:</span> <span class="pre">&lt;obj&gt;}</span></code></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – if no source resolves.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.strip_system_fields">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">strip_system_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/recipes.html#strip_system_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.strip_system_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">item</span></code> with Cosmos system fields removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.translate_cosmos_errors">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">translate_cosmos_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_arg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">not_found_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'cosmodol.errors.ItemNotFoundError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exists_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'cosmodol.errors.ItemAlreadyExistsError'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/errors.html#translate_cosmos_errors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.translate_cosmos_errors" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator: translate Cosmos SDK exceptions into <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> subclasses.</p>
+<p>Auth errors and any other Cosmos errors propagate untouched. HTTP 429 throttling is
+wrapped in <code class="docutils literal notranslate"><span class="pre">CosmosThrottleError</span></code> so callers can distinguish it. See
+<code class="docutils literal notranslate"><span class="pre">misc/docs/design_decisions.md</span></code> §11.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_arg</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Position (int) or name (str) of the key argument in the wrapped
+method’s signature. Used to populate <code class="docutils literal notranslate"><span class="pre">KeyError(key)</span></code>. Default 0; for
+methods the user-facing key is typically at index 1 (<code class="docutils literal notranslate"><span class="pre">self</span></code> at 0).</p></li>
+<li><p><strong>not_found_cls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></a>]</span>) – Exception class to raise on <code class="docutils literal notranslate"><span class="pre">CosmosResourceNotFoundError</span></code>.</p></li>
+<li><p><strong>exists_cls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#KeyError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></a>]</span>) – Exception class to raise on <code class="docutils literal notranslate"><span class="pre">CosmosResourceExistsError</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cosmodol.validate_cosmos_id">
+<span class="sig-prename descclassname"><span class="pre">cosmodol.</span></span><span class="sig-name descname"><span class="pre">validate_cosmos_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/errors.html#validate_cosmos_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.validate_cosmos_id" title="Link to this definition">¶</a></dt>
+<dd><p>Raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if <code class="docutils literal notranslate"><span class="pre">k</span></code> is not a valid Cosmos item <code class="docutils literal notranslate"><span class="pre">id</span></code>.</p>
+<p>Cosmos may accept invalid ids on write but the item then becomes unreachable from
+the SDK. We fail loudly at write time. See <code class="docutils literal notranslate"><span class="pre">misc/docs/cosmos_db_reference.md</span></code>
+§”id rules”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Modules</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="cosmodol.base.html#module-cosmodol.base" title="cosmodol.base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base</span></code></a></p></td>
+<td><p>Close-to-metal CRUD facade for Cosmos DB.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cosmodol.connection.html#module-cosmodol.connection" title="cosmodol.connection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connection</span></code></a></p></td>
+<td><p>Connection-layer for cosmodol.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cosmodol.errors.html#module-cosmodol.errors" title="cosmodol.errors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">errors</span></code></a></p></td>
+<td><p>Custom exceptions and error-translation decorator for cosmodol.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cosmodol.ops.html#module-cosmodol.ops" title="cosmodol.ops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ops</span></code></a></p></td>
+<td><p>Key-taking operations, as free functions over the caller's (possibly wrapped) store.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cosmodol.recipes.html#module-cosmodol.recipes" title="cosmodol.recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recipes</span></code></a></p></td>
+<td><p>Convenience wrappers and factories for cosmodol.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cosmodol.stores.html#module-cosmodol.stores" title="cosmodol.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
+<td><p>Mapping stores over a Cosmos DB container.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="cosmodol.testing.html#module-cosmodol.testing" title="cosmodol.testing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testing</span></code></a></p></td>
+<td><p>Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="cosmodol.trees.html#module-cosmodol.trees" title="cosmodol.trees"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trees</span></code></a></p></td>
+<td><p>Tree-shaped stores: mapping-of-databases and mapping-of-containers.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="cosmodol.base.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">cosmodol.base</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../api.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">API reference</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            Made with 
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">cosmodol</a><ul>
+<li><a class="reference internal" href="#cosmodol.ContainerNotEmptyError"><code class="docutils literal notranslate"><span class="pre">ContainerNotEmptyError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.ContainerNotFoundError"><code class="docutils literal notranslate"><span class="pre">ContainerNotFoundError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.CosmosAccount"><code class="docutils literal notranslate"><span class="pre">CosmosAccount</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.CosmosConnection"><code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code></a><ul>
+<li><a class="reference internal" href="#cosmodol.CosmosConnection.client"><code class="docutils literal notranslate"><span class="pre">CosmosConnection.client</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.CosmosConnection.from_anything"><code class="docutils literal notranslate"><span class="pre">CosmosConnection.from_anything()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cosmodol.CosmosDatabase"><code class="docutils literal notranslate"><span class="pre">CosmosDatabase</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.CosmosItems"><code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code></a><ul>
+<li><a class="reference internal" href="#cosmodol.CosmosItems.query"><code class="docutils literal notranslate"><span class="pre">CosmosItems.query()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cosmodol.CosmosPartitionedItems"><code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems</span></code></a><ul>
+<li><a class="reference internal" href="#cosmodol.CosmosPartitionedItems.query"><code class="docutils literal notranslate"><span class="pre">CosmosPartitionedItems.query()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cosmodol.CosmosThrottleError"><code class="docutils literal notranslate"><span class="pre">CosmosThrottleError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.DatabaseNotEmptyError"><code class="docutils literal notranslate"><span class="pre">DatabaseNotEmptyError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.DatabaseNotFoundError"><code class="docutils literal notranslate"><span class="pre">DatabaseNotFoundError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.ItemAlreadyExistsError"><code class="docutils literal notranslate"><span class="pre">ItemAlreadyExistsError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.ItemNotFoundError"><code class="docutils literal notranslate"><span class="pre">ItemNotFoundError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.KeyMismatchError"><code class="docutils literal notranslate"><span class="pre">KeyMismatchError</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.ResponseHeaders"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders</span></code></a><ul>
+<li><a class="reference internal" href="#cosmodol.ResponseHeaders.request_charge"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.request_charge</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.ResponseHeaders.etag"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.etag</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.etag</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">ResponseHeaders.request_charge</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cosmodol.add_container"><code class="docutils literal notranslate"><span class="pre">add_container()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.add_database"><code class="docutils literal notranslate"><span class="pre">add_database()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.batch"><code class="docutils literal notranslate"><span class="pre">batch()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.batch_items"><code class="docutils literal notranslate"><span class="pre">batch_items()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.cosmos_store"><code class="docutils literal notranslate"><span class="pre">cosmos_store()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.delete_container"><code class="docutils literal notranslate"><span class="pre">delete_container()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.delete_database"><code class="docutils literal notranslate"><span class="pre">delete_database()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.partition"><code class="docutils literal notranslate"><span class="pre">partition()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.point_contains"><code class="docutils literal notranslate"><span class="pre">point_contains()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.point_delete"><code class="docutils literal notranslate"><span class="pre">point_delete()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.point_get"><code class="docutils literal notranslate"><span class="pre">point_get()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.point_replace"><code class="docutils literal notranslate"><span class="pre">point_replace()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.point_upsert"><code class="docutils literal notranslate"><span class="pre">point_upsert()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.query"><code class="docutils literal notranslate"><span class="pre">query()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.replace_item"><code class="docutils literal notranslate"><span class="pre">replace_item()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.resolve_credential"><code class="docutils literal notranslate"><span class="pre">resolve_credential()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.strip_system_fields"><code class="docutils literal notranslate"><span class="pre">strip_system_fields()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.translate_cosmos_errors"><code class="docutils literal notranslate"><span class="pre">translate_cosmos_errors()</span></code></a></li>
+<li><a class="reference internal" href="#cosmodol.validate_cosmos_id"><code class="docutils literal notranslate"><span class="pre">validate_cosmos_id()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=1d1a88ea"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    </body>
+</html>

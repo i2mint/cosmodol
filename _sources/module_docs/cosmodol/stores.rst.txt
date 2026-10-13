@@ -1,4 +1,0 @@
-cosmodol.stores
-===============
-.. automodule:: cosmodol.stores
-   :members:

@@ -1,4 +1,0 @@
-cosmodol.recipes
-================
-.. automodule:: cosmodol.recipes
-   :members:

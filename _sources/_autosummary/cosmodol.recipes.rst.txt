@@ -1,0 +1,13 @@
+cosmodol.recipes
+================
+
+.. automodule:: cosmodol.recipes
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      cosmos_store
+      strip_system_fields
+   

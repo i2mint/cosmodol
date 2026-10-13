@@ -1,0 +1,24 @@
+cosmodol.ops
+============
+
+.. automodule:: cosmodol.ops
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      BATCH_OPS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      replace_item
+      batch_items
+      partition
+      add_container
+      delete_container
+      add_database
+      delete_database
+   

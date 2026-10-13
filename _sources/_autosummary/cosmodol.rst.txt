@@ -1,0 +1,68 @@
+﻿cosmodol
+========
+
+.. automodule:: cosmodol
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_credential
+      batch
+      point_contains
+      point_delete
+      point_get
+      point_replace
+      point_upsert
+      query
+      translate_cosmos_errors
+      validate_cosmos_id
+      add_container
+      add_database
+      batch_items
+      delete_container
+      delete_database
+      partition
+      replace_item
+      cosmos_store
+      strip_system_fields
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CosmosConnection
+      ResponseHeaders
+      CosmosItems
+      CosmosPartitionedItems
+      CosmosAccount
+      CosmosDatabase
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ContainerNotEmptyError
+      ContainerNotFoundError
+      CosmosThrottleError
+      DatabaseNotEmptyError
+      DatabaseNotFoundError
+      ItemAlreadyExistsError
+      ItemNotFoundError
+      KeyMismatchError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   base
+   connection
+   errors
+   ops
+   recipes
+   stores
+   testing
+   trees
