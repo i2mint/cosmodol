@@ -1,23 +1,21 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-13T23:17:42.343254Z
-commit_sha,6acbe51f7c502fcffd670f0e019dc3764e63198a
-commit_message,"fix: batch failure note also on Python 3.10 (__notes__ set directly)
-
-Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
+timestamp,2026-10-13T23:17:49.659797Z
+commit_sha,d68f5da3b8df59d67532e25c2369376121f441fc
+commit_message,Merge 6acbe51f7c502fcffd670f0e019dc3764e63198a into a6aa9dd80680ec97cfa264a063454c59534f04ae
 python_version,3.10
-metrics.umpyre_stats.num_functions,8665
-metrics.umpyre_stats.num_classes,2078
-metrics.umpyre_stats.total_lines,336670
-metrics.umpyre_stats.empty_lines,41543
-metrics.umpyre_stats.comment_lines,19892
-metrics.umpyre_stats.docs_lines,40773
-metrics.umpyre_stats.function_lines,146175
-metrics.umpyre_stats.empty_lines_ratio,0.12339382778388333
-metrics.umpyre_stats.comment_lines_ratio,0.05908456351917308
-metrics.umpyre_stats.function_lines_ratio,0.43417886951614343
-metrics.umpyre_stats.mean_lines_per_function,16.869590305828044
-metrics.umpyre_stats.files_analyzed,815
+metrics.umpyre_stats.num_functions,8761
+metrics.umpyre_stats.num_classes,2089
+metrics.umpyre_stats.total_lines,338829
+metrics.umpyre_stats.empty_lines,41876
+metrics.umpyre_stats.comment_lines,20038
+metrics.umpyre_stats.docs_lines,40806
+metrics.umpyre_stats.function_lines,147734
+metrics.umpyre_stats.empty_lines_ratio,0.12359036564166585
+metrics.umpyre_stats.comment_lines_ratio,0.059138975707510276
+metrics.umpyre_stats.function_lines_ratio,0.4360134463106759
+metrics.umpyre_stats.mean_lines_per_function,16.862686907887227
+metrics.umpyre_stats.files_analyzed,825
 metrics.umpyre_stats.pypi_version,0.0.7
 metrics.umpyre_stats.errors,"['auth.py: invalid non-printable character U+FEFF (auth.py, line 1)', '_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)', 'documents.py: invalid non-printable character U+FEFF (documents.py, line 1)', '_partition.py: invalid non-printable character U+FEFF (_partition.py, line 1)', '_range.py: invalid non-printable character U+FEFF (_range.py, line 1)', 'exceptions.py: invalid non-printable character U+FEFF (exceptions.py, line 1)', 'errors.py: invalid non-printable character U+FEFF (errors.py, line 1)', '_base.py: invalid non-printable character U+FEFF (_base.py, line 1)', 'cosmos_client.py: invalid non-printable character U+FEFF (cosmos_client.py, line 1)', 'http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)']"
 metrics.umpyre_stats.total_errors,11
@@ -37,4 +35,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,3.8191897869110107
+collection_duration_seconds,3.4053022861480713
