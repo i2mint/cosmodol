@@ -1,0 +1,60 @@
+{
+  "collection_duration_seconds": 3.8191897869110107,
+  "commit_message": "fix: batch failure note also on Python 3.10 (__notes__ set directly)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
+  "commit_sha": "6acbe51f7c502fcffd670f0e019dc3764e63198a",
+  "metrics": {
+    "coverage": {
+      "branch_coverage": 0.0,
+      "error": "No coverage file found",
+      "line_coverage": 0.0,
+      "statements_covered": 0,
+      "statements_total": 0
+    },
+    "umpyre_stats": {
+      "comment_lines": 19892,
+      "comment_lines_ratio": 0.05908456351917308,
+      "docs_lines": 40773,
+      "empty_lines": 41543,
+      "empty_lines_ratio": 0.12339382778388333,
+      "errors": [
+        "auth.py: invalid non-printable character U+FEFF (auth.py, line 1)",
+        "_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)",
+        "documents.py: invalid non-printable character U+FEFF (documents.py, line 1)",
+        "_partition.py: invalid non-printable character U+FEFF (_partition.py, line 1)",
+        "_range.py: invalid non-printable character U+FEFF (_range.py, line 1)",
+        "exceptions.py: invalid non-printable character U+FEFF (exceptions.py, line 1)",
+        "errors.py: invalid non-printable character U+FEFF (errors.py, line 1)",
+        "_base.py: invalid non-printable character U+FEFF (_base.py, line 1)",
+        "cosmos_client.py: invalid non-printable character U+FEFF (cosmos_client.py, line 1)",
+        "http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)"
+      ],
+      "files_analyzed": 815,
+      "function_lines": 146175,
+      "function_lines_ratio": 0.43417886951614343,
+      "mean_lines_per_function": 16.869590305828044,
+      "num_classes": 2078,
+      "num_functions": 8665,
+      "pypi_version": "0.0.7",
+      "total_errors": 11,
+      "total_lines": 336670
+    },
+    "wily": {
+      "cyclomatic_avg": 0.0,
+      "error": "wily build failed: \u001b[31mFailed to setup archiver: 'Dirty repository, make sure you commit/stash files first'\u001b[0m\n",
+      "files_analyzed": 0,
+      "maintainability_index": 0.0,
+      "total_loc": 0
+    },
+    "workflow_status": {
+      "last_run_status": "failure",
+      "last_success_timestamp": "2026-10-13T08:51:19Z",
+      "recent_failure_count": 4,
+      "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38483073468",
+      "total_runs_analyzed": 10
+    }
+  },
+  "python_version": "3.10",
+  "schema_version": "1.0",
+  "timestamp": "2026-10-13T23:17:42.343254Z",
+  "workflow_status": {}
+}

@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 2.604440212249756,
-  "commit_message": "Merge 6acbe51f7c502fcffd670f0e019dc3764e63198a into a6aa9dd80680ec97cfa264a063454c59534f04ae",
-  "commit_sha": "d68f5da3b8df59d67532e25c2369376121f441fc",
+  "collection_duration_seconds": 3.8191897869110107,
+  "commit_message": "fix: batch failure note also on Python 3.10 (__notes__ set directly)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
+  "commit_sha": "6acbe51f7c502fcffd670f0e019dc3764e63198a",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -55,6 +55,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-13T23:17:37.084035Z",
+  "timestamp": "2026-10-13T23:17:42.343254Z",
   "workflow_status": {}
 }
