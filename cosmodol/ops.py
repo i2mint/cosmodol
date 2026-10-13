@@ -23,23 +23,36 @@ The same design is s3dol's ADR-0011 (keyed capabilities leave the store's method
 destructive ones become free functions). The removed methods now raise an
 ``AttributeError`` that names their replacement here.
 
-Caveats, stated rather than hidden (ADR-0011 D3a):
+What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):
 
-- Keys are resolved with ``dol.inner_most_key``, i.e. each wrapping layer's
-  ``_id_of_key``. Every ``dol``-shipped wrapper (``wrap_kvs``, ``KeyCodecs``, ``Pipe``,
-  ``filt_iter``, ``cached_keys``) does this right; a hand-rolled ``__getattr__``
-  passthrough layer can make it apply a transform twice.
-- Values (``replace_item``, ``batch_items``) go through each layer's ``_data_of_obj``,
-  which is what ``wrap_kvs(data_of_obj=...)`` and ``ValueCodecs`` install. A key-aware
-  ``preset=`` write hook is **not** followed — such a hook only runs inside
-  ``__setitem__``.
+- **Key mapping** — honoured. Keys are resolved with ``dol.inner_most_key``, i.e. each
+  wrapping layer's ``_id_of_key`` (``wrap_kvs``, ``KeyCodecs``, ``Pipe``, class- and
+  instance-wraps alike). A hand-rolled ``__getattr__`` passthrough layer can make it
+  apply a transform twice.
+- **Scope** — honoured for operations on *existing* resources. On a wrapped store,
+  ``replace_item``, ``batch_items``'s read/replace/patch/delete, and the forced
+  ``delete_container`` / ``delete_database`` first check ``k in store`` through the
+  outer store, so a ``filt_iter`` scope (or any wrapper whose ``__contains__`` says no)
+  stops them. That is one extra point read per key. Operations that *create* (batch
+  ``create``/``upsert``, ``add_container``, ``add_database``) cannot ask a filter, since
+  the key does not exist yet: they honour the key mapping only.
+- **Values** — ``replace_item`` and ``batch_items`` pass values through each layer's
+  ``_data_of_obj`` (what ``wrap_kvs(data_of_obj=...)`` and ``ValueCodecs`` install). A
+  key-aware ``preset=`` write hook is **not** followed (it only runs inside
+  ``__setitem__``), and returned documents are in stored (leaf) form.
+- **Guards and caches** — not seen. A layer that refuses writes in its own
+  ``__setitem__``/``__delitem__``, or caches values, is bypassed by any function,
+  exactly as by the old methods. Pass such a store only if you mean to bypass it.
 """
 
 from __future__ import annotations
 
+import json
+
 from typing import Any, Callable, Iterable, Optional
 
 from azure.cosmos import PartitionKey
+from azure.cosmos.partition_key import NonePartitionKeyValue
 from dol import inner_most_key
 from dol.dig import inner_most
 
@@ -47,6 +60,7 @@ from cosmodol.base import batch as _batch, point_replace
 from cosmodol.errors import (
     ContainerNotFoundError,
     DatabaseNotFoundError,
+    ItemNotFoundError,
     validate_cosmos_id,
 )
 from cosmodol.stores import CosmosItems, CosmosPartitionedItems
@@ -86,6 +100,15 @@ def _leaf_key(store, leaf, k):
     return inner_most_key(store, k)
 
 
+def _existing_leaf_key(store, leaf, k, not_found: type[KeyError]):
+    """``_leaf_key``, after checking ``k in store`` through every wrapping layer, so a
+    scope filter around the store is honoured. Unwrapped stores skip the round-trip
+    (the operation itself fails on a missing resource)."""
+    if store is not leaf and k not in store:
+        raise not_found(k)
+    return _leaf_key(store, leaf, k)
+
+
 def _leaf_value(store, leaf, v):
     if store is leaf:
         return v
@@ -115,7 +138,7 @@ def replace_item(store, k, v, *, etag: Optional[str] = None) -> dict:
         leaf strips them).
     """
     leaf = _leaf_of(store, CosmosItems, fn="replace_item")
-    k = _leaf_key(store, leaf, k)
+    k = _existing_leaf_key(store, leaf, k, ItemNotFoundError)
     body = leaf._prepare_body(k, _leaf_value(store, leaf, v))
     item, hdrs = point_replace(
         leaf.container, k, body, leaf.partition_key_value, etag=etag
@@ -138,41 +161,58 @@ BATCH_OPS = {
 def batch_items(store, operations: Iterable[tuple]) -> list[dict]:
     """Transactional batch within the store's partition, in the caller's key space.
 
-    Each operation is ``(op, key)`` or ``(op, key, value)``, with ``op`` one of
-    ``BATCH_OPS``::
+    Each operation is ``(op, key)`` or ``(op, key, value)`` (``op`` one of
+    ``BATCH_OPS``), optionally followed by a dict of per-operation SDK keyword arguments
+    such as ``{"if_match_etag": etag}``::
 
         [("upsert", "a", {"v": 1}), ("replace", "b", {"v": 2}), ("delete", "c")]
 
     Keys (and values, except ``patch`` operation lists) are mapped down to the leaf exactly
     as ``replace_item`` maps them, and bodies get the leaf's usual ``id`` /
-    partition-key injection. The SDK's raw ``(op, args, kwargs)`` triples are not accepted
-    here, because the ids inside them are opaque to any key mapping; use the metal-layer
-    ``cosmodol.batch(container, triples, partition_key)`` for those.
+    partition-key injection. On a wrapped store, every key a ``read``, ``replace``,
+    ``patch`` or ``delete`` targets must be in the store (one point read each), unless an
+    earlier ``create``/``upsert`` of the same batch makes it. The SDK's raw
+    ``(op, args, kwargs)`` triples are not accepted here, because the ids inside them are
+    opaque to any key mapping; use ``cosmodol.batch(container, triples, partition_key)``.
     """
     leaf = _leaf_of(store, CosmosItems, fn="batch_items")
-    triples = []
+    triples, created = [], set()
     for operation in operations:
         op, k, *rest = operation
         if op not in BATCH_OPS:
             raise ValueError(
                 f"Unknown batch op {op!r}; expected one of {list(BATCH_OPS)}."
             )
-        if len(rest) != int(BATCH_OPS[op]):
-            shape = "(op, key, value)" if BATCH_OPS[op] else "(op, key)"
-            raise ValueError(f"Batch op {op!r} takes {shape}; got {operation!r}.")
-        k = _leaf_key(store, leaf, k)
+        if isinstance(k, tuple):
+            raise ValueError(
+                f"Batch op {operation!r} looks like an SDK (op, args, kwargs) triple. "
+                "batch_items takes (op, key[, value][, kwargs]); for raw triples use "
+                "cosmodol.batch(container, triples, partition_key)."
+            )
+        has_value = BATCH_OPS[op]
+        kwargs = {}
+        if len(rest) == has_value + 1 and isinstance(rest[-1], dict):
+            *rest, kwargs = rest
+        if len(rest) != has_value:
+            shape = "(op, key, value)" if has_value else "(op, key)"
+            raise ValueError(
+                f"Batch op {op!r} takes {shape}[, kwargs]; got {operation!r}."
+            )
+        if op in ("create", "upsert"):
+            created.add(k)
+            k = _leaf_key(store, leaf, k)
+        elif k in created:
+            k = _leaf_key(store, leaf, k)
+        else:
+            k = _existing_leaf_key(store, leaf, k, ItemNotFoundError)
         if op in ("create", "upsert", "replace"):
             body = leaf._prepare_body(k, _leaf_value(store, leaf, rest[0]))
             args = (body,) if op != "replace" else (k, body)
-        elif op == "patch":
-            if leaf.strict_keys:
-                validate_cosmos_id(k)
-            args = (k, rest[0])
         else:
             if leaf.strict_keys:
                 validate_cosmos_id(k)
-            args = (k,)
-        triples.append((op, args, {}))
+            args = (k, rest[0]) if op == "patch" else (k,)
+        triples.append((op, args, kwargs))
     return _batch(leaf.container, triples, leaf.partition_key_value)
 
 
@@ -196,8 +236,8 @@ def partition(store, pk_value, *, wrap: Optional[Callable] = None) -> Any:
     leaf = _leaf_of(store, CosmosPartitionedItems, fn="partition")
     if store is not leaf and wrap is None:
         raise TypeError(
-            f"partition() refused: {type(store).__name__} wraps a CosmosPartitionedItems, "
-            "and the child partition would silently lose those wrappers (key and value "
+            "partition() refused: this CosmosPartitionedItems is wrapped by a dol "
+            "wrapper, and the child partition would silently lose those wrappers (key and value "
             "codecs alike). Pass wrap=<the same wrapper, for the child's id keys> — or "
             "wrap=lambda s: s to explicitly take the bare child."
         )
@@ -261,11 +301,16 @@ def add_container(
 
 
 def _partition_key_expr(container) -> Optional[str]:
-    """Cosmos SQL expression for the container's partition key, e.g. ``c["tenant"]``."""
+    """Cosmos SQL expression for the container's partition key: ``c["tenant"]``, or an
+    array of them for a hierarchical (MultiHash) key, which the SDK takes as a list."""
     paths = (container.read().get("partitionKey") or {}).get("paths") or []
-    if not paths:
-        return None
-    return "c" + "".join(f'["{p}"]' for p in paths[0].strip("/").split("/"))
+
+    def expr(path):
+        return "c" + "".join(f"[{json.dumps(p)}]" for p in path.strip("/").split("/"))
+
+    if len(paths) <= 1:
+        return expr(paths[0]) if paths else None
+    return "[" + ", ".join(map(expr, paths)) + "]"
 
 
 def delete_container(db_store, name: str, *, force: bool = False) -> None:
@@ -279,7 +324,7 @@ def delete_container(db_store, name: str, *, force: bool = False) -> None:
     if not force:
         del db_store[name]
         return
-    k = _leaf_key(db_store, leaf, name)
+    k = _existing_leaf_key(db_store, leaf, name, ContainerNotFoundError)
     try:
         c = leaf.database.get_container_client(k)
         pk_expr = _partition_key_expr(c)
@@ -291,20 +336,26 @@ def delete_container(db_store, name: str, *, force: bool = False) -> None:
         else (f"SELECT c.id, {pk_expr} AS pk FROM c")
     )
     for item in c.query_items(query=select, enable_cross_partition_query=True):
-        c.delete_item(item=item["id"], partition_key=item.get("pk"))
+        # A projection omits an undefined value: the item has no partition-key property.
+        pk = item["pk"] if "pk" in item else NonePartitionKeyValue
+        c.delete_item(item=item["id"], partition_key=pk)
     leaf.database.delete_container(k)
 
 
 def add_database(
     account_store, name: str, *, throughput: Optional[int] = None, **extra
 ):
-    """Create database ``name`` (in the caller's key space); return it as the account's
-    values are returned (``account_store[name]``)."""
+    """Create database ``name`` (in the caller's key space).
+
+    Returns the leaf's value for it (its ``database_factory`` output, a
+    ``CosmosDatabase`` by default), not ``account_store[name]``: a wrapper that does not
+    expose the new name would otherwise raise after the database was created.
+    """
     leaf = _leaf_of(account_store, CosmosAccount, fn="add_database")
-    leaf.client.create_database(
+    db = leaf.client.create_database(
         id=_leaf_key(account_store, leaf, name), offer_throughput=throughput, **extra
     )
-    return account_store[name]
+    return leaf.database_factory(db)
 
 
 def delete_database(account_store, name: str, *, force: bool = False) -> None:
@@ -317,7 +368,7 @@ def delete_database(account_store, name: str, *, force: bool = False) -> None:
     if not force:
         del account_store[name]
         return
-    k = _leaf_key(account_store, leaf, name)
+    k = _existing_leaf_key(account_store, leaf, name, DatabaseNotFoundError)
     try:
         db = leaf.client.get_database_client(k)
         db.read()

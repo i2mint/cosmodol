@@ -135,7 +135,7 @@ def test_batch_items_rejects_sdk_triples_and_bad_shapes():
     with pytest.raises(ValueError, match="Unknown batch op"):
         batch_items(w, [("frobnicate", "k")])
     with pytest.raises(ValueError, match=r"takes \(op, key\)"):
-        batch_items(w, [("delete", "doc1", {"payload": 1})])
+        batch_items(w, [("delete", "doc1", "extra", {})])
     with pytest.raises(ValueError, match=r"takes \(op, key, value\)"):
         batch_items(w, [("upsert", "doc1")])
 
@@ -393,7 +393,99 @@ def test_no_unreviewed_public_methods(cls):
         name
         for name, attr in inspect.getmembers(cls)
         if not name.startswith("_")
-        and name not in inherited
-        and inspect.isfunction(attr)
+        and (name not in inherited or name in vars(cls))  # incl. overridden Mapping API
+        and callable(attr)  # functions, classmethods, staticmethods
+        and not isinstance(attr, type)
     }
     assert own == PUBLIC_METHOD_INVENTORY[cls]
+
+
+def test_inventory_sees_classmethods_and_overrides():
+    class Grown(CosmosItems):
+        @classmethod
+        def wipe(cls, k): ...
+
+        def get(self, k, default=None): ...
+
+    with pytest.raises(AssertionError):
+        PUBLIC_METHOD_INVENTORY[Grown] = PUBLIC_METHOD_INVENTORY[CosmosItems]
+        try:
+            test_no_unreviewed_public_methods(Grown)
+        finally:
+            del PUBLIC_METHOD_INVENTORY[Grown]
+
+
+# ---------------------------------------------------------------------------
+# Adversarial-review findings
+# ---------------------------------------------------------------------------
+
+
+def _scoped_items(c):
+    from dol import filt_iter
+
+    return filt_iter(
+        CosmosItems(c, partition_key_value=PK, partition_key_path="/_pk"),
+        filt=lambda k: k.startswith(PREFIX),
+    )
+
+
+def test_scope_filter_stops_replace_and_batch_on_out_of_scope_keys():
+    c = _container()
+    view = _scoped_items(c)
+    with pytest.raises(ItemNotFoundError):
+        replace_item(view, "doc1", {"payload": "OVERWRITTEN"})
+    with pytest.raises(ItemNotFoundError):
+        batch_items(view, [("delete", "doc1")])
+    assert _state(c) == {"app_doc1": "MINE", "doc1": "SOMEONE ELSE'S"}
+    replace_item(view, "app_doc1", {"payload": "OK"})  # in scope: allowed
+    assert _state(c)["app_doc1"] == "OK"
+
+
+def test_batch_key_created_earlier_in_the_batch_needs_no_membership():
+    c = _container()
+    batch_items(
+        _class_wrapped(c), [("upsert", "fresh", {"payload": "1"}), ("replace", "fresh", {"payload": "2"})]
+    )
+    assert _state(c)["app_fresh"] == "2"
+
+
+def test_batch_per_op_kwargs_and_sdk_triples():
+    c = _container()
+    etag = c._data[(PK, "app_doc1")]["_etag"]
+    batch_items(_class_wrapped(c), [("replace", "doc1", {"payload": "E"}, {"if_match_etag": etag})])
+    assert _state(c)["app_doc1"] == "E"
+    with pytest.raises(ValueError, match="SDK"):
+        batch_items(_class_wrapped(c), [("upsert", ({"id": "x"},), {})])
+
+
+def test_scope_filter_stops_forced_container_delete():
+    from dol import filt_iter
+
+    db = _db()
+    view = filt_iter(CosmosDatabase(db), filt=lambda k: k.startswith(PREFIX))
+    with pytest.raises(Exception, match="events"):
+        delete_container(view, "events", force=True)
+    assert sorted(db.containers) == ["app_events", "events"]
+
+
+def test_add_database_does_not_raise_after_creating():
+    from dol import filt_iter
+
+    acct, client = _account(True)
+    hidden = filt_iter(acct, filt=lambda k: k.startswith("x"))
+    db = add_database(hidden, "extra")
+    assert db.name == "app_extra" and "app_extra" in client.dbs
+
+
+def test_forced_delete_handles_hierarchical_and_missing_partition_keys():
+    from cosmodol.ops import NonePartitionKeyValue, _partition_key_expr
+
+    multi = _FakeContainer("m", [])
+    multi.read = lambda: {"id": "m", "partitionKey": {"paths": ["/t", "/u/v"], "kind": "MultiHash"}}
+    assert _partition_key_expr(multi) == '[c["t"], c["u"]["v"]]'
+
+    db = _db()
+    target = db.containers["events"]
+    target.query_items = lambda query, **kw: iter([{"id": "a", "pk": ["T", "U"]}, {"id": "b"}])
+    delete_container(CosmosDatabase(db), "events", force=True)
+    assert target.deleted == [("a", ["T", "U"]), ("b", NonePartitionKeyValue)]
