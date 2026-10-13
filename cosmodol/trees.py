@@ -5,7 +5,8 @@
 - ``CosmosAccount`` — keys are database names; values are ``CosmosDatabase`` instances.
 
 Container/database creation is NOT via ``__setitem__`` — too parameter-rich; use
-``add_container(...)`` / ``add_database(...)``. See
+``cosmodol.add_container(db_store, ...)`` / ``cosmodol.add_database(account_store, ...)``
+(free functions, so a ``dol`` key codec around the store is honoured). See
 ``misc/docs/design_decisions.md`` §7.
 """
 
@@ -13,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterator, Optional, Union
 
-from azure.cosmos import CosmosClient, DatabaseProxy, PartitionKey
+from azure.cosmos import CosmosClient, DatabaseProxy
 from dol import KvReader
 
 from cosmodol.connection import CosmosConnection
@@ -22,6 +23,12 @@ from cosmodol.errors import (
     ContainerNotFoundError,
     DatabaseNotEmptyError,
     DatabaseNotFoundError,
+    MovedToFunction,
+)
+
+_MOVED_REASON = (
+    "As a method it ignored any dol key codec wrapped around the store and acted on the "
+    "unmapped name (i2mint/cosmodol#1); the function maps it through every layer."
 )
 
 
@@ -33,8 +40,9 @@ from cosmodol.errors import (
 class CosmosDatabase(KvReader):
     """Mapping of container name → ``ContainerProxy`` (or store-wrapped form).
 
-    ``__setitem__`` is disabled — use ``add_container(name, partition_key_path=..., ...)``.
-    ``__delitem__`` refuses non-empty containers; use ``self.delete(name, force=True)``.
+    ``__setitem__`` is disabled — use ``cosmodol.add_container(db_store, name, ...)``.
+    ``__delitem__`` refuses non-empty containers; use
+    ``cosmodol.delete_container(db_store, name, force=True)``.
 
     Args:
         database: Either an existing ``DatabaseProxy``, a database name string (resolved
@@ -92,7 +100,7 @@ class CosmosDatabase(KvReader):
     def __setitem__(self, k, v):
         raise TypeError(
             "Container creation does not go through __setitem__ (too parameter-rich). "
-            "Use `database_store.add_container(name, partition_key_path=..., ...)` instead."
+            "Use `cosmodol.add_container(db_store, name, partition_key_path=..., ...)` instead."
         )
 
     def __delitem__(self, k: str) -> None:
@@ -101,7 +109,7 @@ class CosmosDatabase(KvReader):
             c.read()
         except Exception as e:
             raise ContainerNotFoundError(k) from e
-        # Refuse non-empty container; force-delete via .delete(k, force=True).
+        # Refuse non-empty container; force-delete via cosmodol.delete_container.
         try:
             next(
                 iter(
@@ -113,7 +121,8 @@ class CosmosDatabase(KvReader):
             )
             raise ContainerNotEmptyError(
                 f"Container {k!r} is not empty. Call "
-                f"`db_store.delete({k!r}, force=True)` to cascade-delete its items."
+                f"`cosmodol.delete_container(db_store, {k!r}, force=True)` to "
+                "cascade-delete its items."
             )
         except StopIteration:
             pass
@@ -122,57 +131,15 @@ class CosmosDatabase(KvReader):
     def __repr__(self) -> str:
         return f"CosmosDatabase({self.name!r})"
 
-    # ---- explicit creators / destroyers ----
+    # ---- creators / destroyers: free functions in cosmodol.ops (i2mint/cosmodol#1) ----
 
-    def add_container(
-        self,
-        name: str,
-        *,
-        partition_key_path: str = "/id",
-        throughput: Optional[int] = None,
-        indexing_policy: Optional[dict] = None,
-        default_ttl: Optional[int] = None,
-        unique_key_policy: Optional[dict] = None,
-        conflict_resolution_policy: Optional[dict] = None,
-        **extra,
-    ):
-        """Create a container.
-
-        Args:
-            name: Container id.
-            partition_key_path: Partition-key path (e.g. ``"/id"``, ``"/tenantId"``).
-                Defaults to ``"/id"`` per ``misc/docs/design_decisions.md`` §3.
-            throughput: Provisioned RU/s (e.g. 400). ``None`` uses the database's
-                shared throughput if any, otherwise the account default.
-            indexing_policy, default_ttl, unique_key_policy, conflict_resolution_policy:
-                Standard Cosmos container kwargs.
-            **extra: Forwarded to ``DatabaseProxy.create_container``.
-        """
-        return self.database.create_container(
-            id=name,
-            partition_key=PartitionKey(path=partition_key_path),
-            offer_throughput=throughput,
-            indexing_policy=indexing_policy,
-            default_ttl=default_ttl,
-            unique_key_policy=unique_key_policy,
-            conflict_resolution_policy=conflict_resolution_policy,
-            **extra,
-        )
-
-    def delete(self, k: str, *, force: bool = False) -> None:
-        """Delete a container; if ``force=True``, cascade-delete its items first."""
-        try:
-            c = self.database.get_container_client(k)
-            c.read()
-        except Exception as e:
-            raise ContainerNotFoundError(k) from e
-        if force:
-            for item in c.query_items(
-                query="SELECT c.id, c._partitionKey FROM c",
-                enable_cross_partition_query=True,
-            ):
-                c.delete_item(item=item["id"], partition_key=item.get("_partitionKey"))
-        self.database.delete_container(k)
+    add_container = MovedToFunction(
+        "cosmodol.add_container(db_store, name, partition_key_path=..., ...)",
+        reason=_MOVED_REASON,
+    )
+    delete = MovedToFunction(
+        "cosmodol.delete_container(db_store, name, force=True)", reason=_MOVED_REASON
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -183,8 +150,9 @@ class CosmosDatabase(KvReader):
 class CosmosAccount(KvReader):
     """Mapping of database name → ``CosmosDatabase``.
 
-    ``__setitem__`` is disabled — use ``add_database(name, throughput=...)``.
-    ``__delitem__`` refuses non-empty databases; use ``self.delete(name, force=True)``.
+    ``__setitem__`` is disabled — use ``cosmodol.add_database(account_store, name, ...)``.
+    ``__delitem__`` refuses non-empty databases; use
+    ``cosmodol.delete_database(account_store, name, force=True)``.
     """
 
     def __init__(
@@ -228,7 +196,7 @@ class CosmosAccount(KvReader):
     def __setitem__(self, k, v):
         raise TypeError(
             "Database creation does not go through __setitem__ (too parameter-rich). "
-            "Use `account_store.add_database(name, throughput=...)` instead."
+            "Use `cosmodol.add_database(account_store, name, throughput=...)` instead."
         )
 
     def __delitem__(self, k: str) -> None:
@@ -241,7 +209,8 @@ class CosmosAccount(KvReader):
             next(iter(db.list_containers()))
             raise DatabaseNotEmptyError(
                 f"Database {k!r} is not empty. Call "
-                f"`account_store.delete({k!r}, force=True)` to cascade-delete its containers."
+                f"`cosmodol.delete_database(account_store, {k!r}, force=True)` to "
+                "cascade-delete its containers."
             )
         except StopIteration:
             pass
@@ -254,24 +223,13 @@ class CosmosAccount(KvReader):
             url = "<unknown>"
         return f"CosmosAccount(endpoint={url!r})"
 
-    def add_database(
-        self,
-        name: str,
-        *,
-        throughput: Optional[int] = None,
-        **extra,
-    ) -> CosmosDatabase:
-        db = self._client.create_database(id=name, offer_throughput=throughput, **extra)
-        return self.database_factory(db)
+    # ---- creators / destroyers: free functions in cosmodol.ops (i2mint/cosmodol#1) ----
 
-    def delete(self, k: str, *, force: bool = False) -> None:
-        """Delete a database; if ``force=True``, cascade-delete its containers first."""
-        try:
-            db = self._client.get_database_client(k)
-            db.read()
-        except Exception as e:
-            raise DatabaseNotFoundError(k) from e
-        if force:
-            for c in db.list_containers():
-                db.delete_container(c["id"])
-        self._client.delete_database(k)
+    add_database = MovedToFunction(
+        "cosmodol.add_database(account_store, name, throughput=...)",
+        reason=_MOVED_REASON,
+    )
+    delete = MovedToFunction(
+        "cosmodol.delete_database(account_store, name, force=True)",
+        reason=_MOVED_REASON,
+    )

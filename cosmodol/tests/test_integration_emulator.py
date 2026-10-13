@@ -23,7 +23,12 @@ from cosmodol import (
     CosmosPartitionedItems,
     ItemNotFoundError,
     KeyMismatchError,
+    add_container,
+    add_database,
     cosmos_store,
+    delete_container,
+    delete_database,
+    partition,
 )
 from cosmodol.testing import (
     EMULATOR_CONNECTION_STRING,
@@ -67,12 +72,12 @@ def database(cosmos_connection):
     """A fresh database for the session; dropped at the end."""
     name = f"cosmodol-test-{uuid.uuid4().hex[:8]}"
     account = CosmosAccount(cosmos_connection)
-    db = account.add_database(name)
+    db = add_database(account, name)
     try:
         yield db
     finally:
         try:
-            account.delete(name, force=True)
+            delete_database(account, name, force=True)
         except Exception:
             pass
 
@@ -81,12 +86,12 @@ def database(cosmos_connection):
 def container_proxy(database):
     """A fresh container per test, dropped after."""
     name = f"c-{uuid.uuid4().hex[:8]}"
-    c = database.add_container(name, partition_key_path="/tenant")
+    c = add_container(database, name, partition_key_path="/tenant")
     try:
         yield c
     finally:
         try:
-            database.delete(name, force=True)
+            delete_container(database, name, force=True)
         except Exception:
             pass
 
@@ -95,12 +100,12 @@ def container_proxy(database):
 def container_id_partition(database):
     """A fresh container partitioned by /id, dropped after."""
     name = f"c-{uuid.uuid4().hex[:8]}"
-    c = database.add_container(name, partition_key_path="/id")
+    c = add_container(database, name, partition_key_path="/id")
     try:
         yield c
     finally:
         try:
-            database.delete(name, force=True)
+            delete_container(database, name, force=True)
         except Exception:
             pass
 
@@ -257,7 +262,7 @@ def test_partitioned_partition_narrowing(container_proxy):
     parts[("A", "k1")] = {"v": 1}
     parts[("A", "k2")] = {"v": 2}
     parts[("B", "k3")] = {"v": 3}
-    a_only = parts.partition("A")
+    a_only = partition(parts, "A")
     assert set(a_only) == {"k1", "k2"}
 
 
@@ -298,15 +303,15 @@ def test_partitioned_len_via_query_opt_in(container_proxy):
 def test_database_lists_containers(database):
     n1 = f"c-{uuid.uuid4().hex[:6]}"
     n2 = f"c-{uuid.uuid4().hex[:6]}"
-    database.add_container(n1, partition_key_path="/id")
-    database.add_container(n2, partition_key_path="/id")
+    add_container(database, n1, partition_key_path="/id")
+    add_container(database, n2, partition_key_path="/id")
     try:
         names = set(database)
         assert n1 in names
         assert n2 in names
     finally:
-        database.delete(n1, force=True)
-        database.delete(n2, force=True)
+        delete_container(database, n1, force=True)
+        delete_container(database, n2, force=True)
 
 
 def test_database_setitem_disabled(database):

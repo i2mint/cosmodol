@@ -9,6 +9,8 @@ from cosmodol import (
     CosmosPartitionedItems,
     ItemNotFoundError,
     KeyMismatchError,
+    partition,
+    replace_item,
 )
 from cosmodol.testing import FakeContainerProxy
 
@@ -83,7 +85,7 @@ def test_ru_observability(items):
 def test_replace_with_etag_conditional(items):
     items["k1"] = {"v": 1}
     etag = items.last_response_headers.etag
-    items.replace("k1", {"v": 2}, etag=etag)
+    replace_item(items, "k1", {"v": 2}, etag=etag)
     assert items["k1"]["v"] == 2
 
 
@@ -92,7 +94,7 @@ def test_replace_with_stale_etag_raises(items):
     from azure.cosmos.exceptions import CosmosAccessConditionFailedError
 
     with pytest.raises(CosmosAccessConditionFailedError):
-        items.replace("k1", {"v": 2}, etag="stale-etag")
+        replace_item(items, "k1", {"v": 2}, etag="stale-etag")
 
 
 def test_record_ru_callback():
@@ -178,7 +180,7 @@ def test_partitioned_partition_narrowing(parts):
     parts[("A", "k1")] = {"v": 1}
     parts[("A", "k2")] = {"v": 2}
     parts[("B", "k3")] = {"v": 3}
-    a_only = parts.partition("A")
+    a_only = partition(parts, "A")
     assert set(a_only) == {"k1", "k2"}
 
 

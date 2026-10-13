@@ -141,3 +141,28 @@ def translate_cosmos_errors(
         return wrapper
 
     return decorator
+
+
+class MovedToFunction:
+    """Class attribute marking a method that moved to a free function.
+
+    Instance access raises an ``AttributeError`` naming the replacement, so
+    ``hasattr(store, name)`` is ``False`` and the error says where to go. Class access
+    returns the marker itself, which keeps ``dol``'s class-wrapping (``delegate_to``
+    walks ``dir(cls)``) working.
+    """
+
+    def __init__(self, replacement: str, *, reason: str = ""):
+        self.replacement = replacement
+        self.reason = reason
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance, owner=None):
+        if instance is None:
+            return self
+        raise AttributeError(
+            f"{type(instance).__name__}.{self.name} was removed; use "
+            f"`{self.replacement}`. {self.reason}".rstrip()
+        )

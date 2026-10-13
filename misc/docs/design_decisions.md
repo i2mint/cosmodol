@@ -85,7 +85,7 @@ call:
 
 ```
 UserWarning: Iterating a CosmosPartitionedItems is a cross-partition scan; RU cost
-scales with container size. Use .partition(pk_value) or .with_filter(...) to narrow,
+scales with container size. Use cosmodol.partition(store, pk_value) to narrow,
 or pass `silent_full_scan=True` to suppress this warning.
 ```
 
@@ -100,7 +100,7 @@ throughput offer mode, default TTL, unique key policy, conflict resolution polic
 So:
 
 - `CosmosAccount.__setitem__` / `CosmosDatabase.__setitem__` are **disabled** (raise `TypeError` with a directive message).
-- `add_database(name, throughput=None)` and `add_container(name, partition_key_path, throughput=None, indexing_policy=None, default_ttl=None, ...)` are the explicit creators.
+- `cosmodol.add_database(account_store, name, throughput=None)` and `cosmodol.add_container(db_store, name, partition_key_path, throughput=None, indexing_policy=None, default_ttl=None, ...)` are the explicit creators. They are free functions, not methods, so a `dol` key codec around the store is honoured (see architecture.md, "Key-taking operations are free functions").
 
 This mirrors how `chromadol` disables `clear()` for safety — the surface owes the user
 clarity over conciseness here.
@@ -108,7 +108,7 @@ clarity over conciseness here.
 ## 8. `__delitem__` on tree-level stores never auto-empties
 
 `del account_store['mydb']` deletes only an *empty* database. If it has containers,
-raises with a directive message. `account_store.delete('mydb', force=True)` is the explicit
+raises with a directive message. `cosmodol.delete_database(account_store, 'mydb', force=True)` is the explicit
 "yes, drop everything below" escape hatch.
 
 Same on `CosmosDatabase.__delitem__` for non-empty containers.

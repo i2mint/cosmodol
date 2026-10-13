@@ -30,7 +30,13 @@ from cosmodol.base import (
 from cosmodol.connection import CosmosConnection
 from cosmodol.errors import (
     KeyMismatchError,
+    MovedToFunction,
     validate_cosmos_id,
+)
+
+_MOVED_REASON = (
+    "Key-taking methods ignored any dol key codec wrapped around the store "
+    "(i2mint/cosmodol#1); the function maps the key through every layer."
 )
 
 
@@ -219,28 +225,18 @@ class CosmosItems(KvPersister):
 
     # ---- explicit methods (not Mapping-shaped) ----
 
-    def replace(
-        self,
-        k: str,
-        v: dict,
-        *,
-        etag: Optional[str] = None,
-    ) -> dict:
-        """Full replace with optional ETag-conditional write."""
-        body = self._prepare_body(k, v)
-        item, hdrs = point_replace(
-            self.container, k, body, self.partition_key_value, etag=etag
-        )
-        self._observe("replace", hdrs)
-        return self._maybe_strip(item)
-
     def query(
         self,
         sql: str,
         *,
         parameters: Optional[list[dict]] = None,
     ) -> Iterator[dict]:
-        """Run a SQL query scoped to this partition. Yields raw item dicts (no stripping)."""
+        """Run a SQL query scoped to this partition. Yields raw item dicts (no stripping).
+
+        SQL addresses the stored documents, so this speaks the leaf's language on both
+        ends: ids in the results are Cosmos ids, and documents are as stored. Neither is
+        passed through any ``dol`` wrapper around this store.
+        """
         return _query(
             self.container,
             sql,
@@ -248,9 +244,14 @@ class CosmosItems(KvPersister):
             partition_key=self.partition_key_value,
         )
 
-    def batch(self, operations: list[tuple]) -> list[dict]:
-        """Transactional batch within this partition. See ``base.batch``."""
-        return _batch(self.container, operations, self.partition_key_value)
+    # Key-taking methods moved to free functions (i2mint/cosmodol#1): as methods, a dol
+    # wrapper handed them its outer key unmapped.
+    replace = MovedToFunction(
+        "cosmodol.replace_item(store, k, v, etag=...)", reason=_MOVED_REASON
+    )
+    batch = MovedToFunction(
+        "cosmodol.batch_items(store, [(op, k[, v]), ...])", reason=_MOVED_REASON
+    )
 
 
 def _infer_pk_path(container: ContainerProxy) -> str:
@@ -406,8 +407,8 @@ class CosmosPartitionedItems(KvPersister):
         if not self._warned and not self.silent_full_scan:
             warnings.warn(
                 "Iterating a CosmosPartitionedItems is a cross-partition scan; RU cost "
-                "scales with container size. Use .partition(pk_value) or .with_filter(...) "
-                "to narrow, or pass `silent_full_scan=True` to suppress this warning.",
+                "scales with container size. Use cosmodol.partition(store, pk_value) to narrow, "
+                "or pass `silent_full_scan=True` to suppress this warning.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -439,20 +440,9 @@ class CosmosPartitionedItems(KvPersister):
             f"partition_key_path={self.partition_key_path!r})"
         )
 
-    # ---- narrowing helpers (sub-stores) ----
-
-    def partition(self, pk_value) -> CosmosItems:
-        """Narrow to a single partition; zero round-trips. Returns ``CosmosItems``."""
-        return CosmosItems(
-            self.container,
-            partition_key_value=pk_value,
-            partition_key_path=self.partition_key_path,
-            inject_id=self.inject_id,
-            inject_partition_key=self.inject_partition_key,
-            strict_keys=self.strict_keys,
-            strip_system_fields=self.strip_system_fields,
-            record_ru=self.record_ru,
-        )
+    partition = MovedToFunction(
+        "cosmodol.partition(store, pk_value)", reason=_MOVED_REASON
+    )
 
     def query(
         self,
@@ -462,7 +452,8 @@ class CosmosPartitionedItems(KvPersister):
         partition_key: Any = None,
         cross_partition: bool = False,
     ) -> Iterator[dict]:
-        """Pass-through to ``base.query``."""
+        """Pass-through to ``base.query``: raw Cosmos ids and documents, as for
+        ``CosmosItems.query``; ``partition_key`` is a stored partition-key value."""
         return _query(
             self.container,
             sql,

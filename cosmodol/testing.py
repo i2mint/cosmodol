@@ -261,6 +261,40 @@ class FakeContainerProxy:
         del self._data[key]
         self._set_hdrs(charge=5.0)
 
+    def execute_item_batch(
+        self, batch_operations: list[tuple], partition_key: Any
+    ) -> list[dict]:
+        """All-or-nothing batch: on any failure the container is restored and the error
+        re-raised. Supports ``create``/``upsert``/``replace``/``read``/``delete``."""
+        from azure.cosmos.exceptions import CosmosResourceExistsError
+
+        snapshot = dict(self._data)
+        results = []
+        try:
+            for op, args, kwargs in batch_operations:
+                if op == "create":
+                    (body,) = args
+                    if (partition_key, body["id"]) in self._data:
+                        raise CosmosResourceExistsError(
+                            message=f"Exists: {body['id']}", response=None
+                        )
+                    results.append(self.upsert_item(body))
+                elif op == "upsert":
+                    results.append(self.upsert_item(*args, **kwargs))
+                elif op == "replace":
+                    results.append(self.replace_item(*args, **kwargs))
+                elif op == "read":
+                    results.append(self.read_item(args[0], partition_key))
+                elif op == "delete":
+                    self.delete_item(args[0], partition_key, **kwargs)
+                    results.append({})
+                else:
+                    raise NotImplementedError(f"FakeContainerProxy batch op {op!r}")
+        except Exception:
+            self._data = snapshot
+            raise
+        return results
+
     def query_items(
         self,
         query: str,

@@ -144,7 +144,7 @@ items = CosmosPartitionedItems(
 items[("tenant-42", "k1")] = {"v": 1}
 items[("tenant-42", "k1")]               # point read
 list(items)                              # cross-partition SELECT c.id, c.<pk> FROM c — warned by default
-items.partition("tenant-42")             # → CosmosItems scoped to that partition (no round-trip)
+cosmodol.partition(items, "tenant-42")   # → CosmosItems scoped to that partition (no round-trip)
 ```
 
 When `partition_key_path == "/id"` (the recommended default for new containers),
@@ -153,10 +153,10 @@ to `CosmosItems(partition_key_value=k)` for every `k` — see [design_decisions.
 
 #### `cosmodol.trees`
 
-**`CosmosDatabase`** — `Mapping[str, ContainerProxy]` (or a wrapped store; see below) — keys are container names, values are containers. `__setitem__` is **disabled** by default (use `add_container(name, partition_key_path=..., throughput=...)`); container creation is too parameter-rich to fit one-arg dict assignment.
+**`CosmosDatabase`** — `Mapping[str, ContainerProxy]` (or a wrapped store; see below) — keys are container names, values are containers. `__setitem__` is **disabled** by default (use `cosmodol.add_container(db_store, name, partition_key_path=..., throughput=...)`); container creation is too parameter-rich to fit one-arg dict assignment.
 
 **`CosmosAccount`** — `Mapping[str, CosmosDatabase]` — keys are database names. Same opt-out
-on `__setitem__`; explicit `add_database(name, throughput=...)`.
+on `__setitem__`; explicit `cosmodol.add_database(account_store, name, throughput=...)`.
 
 Both tree-level stores accept a `store_factory` callable that decides how to wrap each child
 container — e.g. `store_factory=lambda c: CosmosItems(c, partition_key_value="default")` —
@@ -228,8 +228,12 @@ items = CosmosItems(
 
 ## Sub-stores
 
-- `CosmosPartitionedItems.partition(pk_value) → CosmosItems` — zero round-trip narrowing.
-- `CosmosItems.with_filter(sql_predicate) → CosmosItems` — narrows iteration with an extra `WHERE` clause; `__getitem__` is unaffected (point reads always hit the underlying item).
+- `cosmodol.partition(store, pk_value) → CosmosItems` — zero round-trip narrowing. On a wrapped store it refuses unless given `wrap=` (the child cannot inherit the parent's wrappers automatically).
+- `CosmosItems.with_filter(sql_predicate)` is **not implemented** (an earlier draft of this doc listed it).
+
+## Key-taking operations are free functions
+
+`dol` wraps by delegation, so a *method* of a wrapped store runs bound to the leaf and receives the caller's unmapped key ([#1](https://github.com/i2mint/cosmodol/issues/1), [dol#83](https://github.com/i2mint/dol/issues/83)). So the stores carry no public method that takes a key: `replace_item`, `batch_items`, `partition`, `add_container`, `delete_container`, `add_database` and `delete_database` live in `cosmodol.ops` (re-exported from `cosmodol`) and take the store first, resolving the key through every wrapping layer. The old method names raise an `AttributeError` naming their replacement. `query` stays a method: it takes SQL, and speaks raw Cosmos ids and documents on both ends. A conformance test (`tests/test_ops.py`) inventories every public method and fails on a new one. Same design as [s3dol ADR-0011](https://github.com/i2mint/s3dol/blob/master/misc/docs/decisions/0011-keyed-capability-surface.md).
 
 We do **not** overload `s[prefix]` for narrowing — Cosmos keys are flat strings and the
 prefix convention has no native server-side support.
