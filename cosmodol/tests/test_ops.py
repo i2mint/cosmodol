@@ -468,13 +468,22 @@ def test_scope_filter_stops_forced_container_delete():
     assert sorted(db.containers) == ["app_events", "events"]
 
 
-def test_add_database_does_not_raise_after_creating():
+def test_add_database_does_not_read_back_through_the_wrapper():
+    acct, client = _account(True)
+    db = add_database(acct, "extra")
+    assert db.name == "app_extra" and "app_extra" in client.dbs
+
+
+def test_add_database_refuses_a_name_outside_the_scope():
+    # Was test_add_database_does_not_raise_after_creating: before #3 the out-of-scope
+    # database was created; now the scope's own __setitem__ refuses it first.
     from dol import filt_iter
 
     acct, client = _account(True)
     hidden = filt_iter(acct, filt=lambda k: k.startswith("x"))
-    db = add_database(hidden, "extra")
-    assert db.name == "app_extra" and "app_extra" in client.dbs
+    with pytest.raises(KeyError):
+        add_database(hidden, "extra")
+    assert "app_extra" not in client.dbs
 
 
 def test_forced_delete_handles_hierarchical_and_missing_partition_keys():

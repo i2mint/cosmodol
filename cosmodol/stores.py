@@ -28,6 +28,7 @@ from cosmodol.base import (
     batch as _batch,
 )
 from cosmodol.connection import CosmosConnection
+from cosmodol.routing import claim
 from cosmodol.errors import (
     KeyMismatchError,
     MovedToFunction,
@@ -181,11 +182,15 @@ class CosmosItems(KvPersister):
         return self._maybe_strip(item)
 
     def __setitem__(self, k: str, v) -> None:
+        if (handler := claim(self, "__setitem__")) is not None:
+            return handler(k, v)  # an ops function, routed through every wrapper
         body = self._prepare_body(k, v)
         _item, hdrs = point_upsert(self.container, body)
         self._observe("set", hdrs)
 
     def __delitem__(self, k: str) -> None:
+        if (handler := claim(self, "__delitem__")) is not None:
+            return handler(k)
         if self.strict_keys:
             validate_cosmos_id(k)
         hdrs = point_delete(self.container, k, self.partition_key_value)
