@@ -79,7 +79,9 @@ class ConcurrentWriteError(RedirectError):
 WRITE_METHODS = ("__setitem__", "__delitem__")
 
 
-@dataclass(eq=False)  # compared by identity: the registry removes by it, and a leaf's == reads the store
+@dataclass(
+    eq=False
+)  # compared by identity: the registry removes by it, and a leaf's == reads the store
 class Redirect:
     """One pending redirect of ``leaf.<method>(key, ...)`` to ``handler``.
 
