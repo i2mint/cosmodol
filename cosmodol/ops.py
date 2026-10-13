@@ -51,10 +51,16 @@ What remains outside a function's reach, stated rather than hidden (s3dol ADR-00
 - A layer that performs the write in another thread or later (a write-behind buffer)
   escapes the redirect: that write is the leaf's ordinary upsert or delete, without the
   operation's semantics (no ETag check, outside a batch's transaction). The function
-  raises ``RedirectError``, but cannot undo it.
+  raises ``RedirectError``, but cannot undo it. A write of the *same key* from another
+  thread or task while the operation is pending is refused (``ConcurrentWriteError``, a
+  ``RedirectError``), so a layer that writes from a thread the operation waits for cannot
+  slip past it. What escapes: a write that lands after the operation has finished, and a
+  write through a different leaf object on the same container (``partition()`` child, a
+  second ``CosmosItems``).
 - ``batch_items`` collects its writes through the layers first and commits them as one
   transaction afterwards: a layer that acts after the inner write returns (a write-through
-  cache, an audit log) has acted even if the transaction then fails.
+  cache, an audit log) has acted even if the transaction then fails. The error that reaches
+  the caller carries a note (``__notes__``) naming the keys the layers had acted on.
 - ``batch_items``'s ``patch`` operation has no mapping-write equivalent, so no layer's
   write logic can run for it; on a wrapped (or subclassed) store it is refused unless
   ``unguarded_patch=True``. Its key is still mapped and scope-checked.
@@ -232,7 +238,7 @@ def batch_items(
     opaque to any key mapping; use ``cosmodol.batch(container, triples, partition_key)``.
     """
     leaf = _leaf_of(store, CosmosItems, fn="batch_items")
-    triples, created = [], set()
+    triples, created, acted = [], set(), []
 
     def collect_write(leaf_k, leaf_v):
         return leaf_k, leaf._prepare_body(leaf_k, leaf_v)
@@ -278,6 +284,8 @@ def batch_items(
         elif k not in created:
             _require_member(store, leaf, k, ItemNotFoundError, CosmosItems)
         what = f"batch_items {op!r}"
+        if op in ("create", "upsert", "replace", "delete"):
+            acted.append(k)
         if op in ("create", "upsert", "replace"):
             leaf_k, body = _routed(
                 store, leaf, "__setitem__", collect_write, k, rest[0], what=what
@@ -289,7 +297,21 @@ def batch_items(
             leaf_k = collect_key(_leaf_key(store, leaf, k))
             args = (leaf_k, rest[0]) if op == "patch" else (leaf_k,)
         triples.append((op, args, kwargs))
-    return _batch(leaf.container, triples, leaf.partition_key_value)
+    try:
+        return _batch(leaf.container, triples, leaf.partition_key_value)
+    except Exception as e:
+        if acted and _write_logic_above(store, leaf, CosmosItems):
+            note = (
+                "batch_items: the batch may not have committed, but the wrapping layers had "
+                f"already run their write logic for these keys: {acted!r}. A write-through "
+                "cache, audit log or index they keep may now disagree with the container "
+                "(i2mint/cosmodol#5)."
+            )
+            if hasattr(e, "add_note"):
+                e.add_note(note)
+            else:  # Python 3.10: the same attribute, which only newer tracebacks print
+                e.__notes__ = [*getattr(e, "__notes__", []), note]
+        raise
 
 
 def partition(store, pk_value, *, wrap: Optional[Callable] = None) -> Any:
