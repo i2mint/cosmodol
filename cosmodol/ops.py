@@ -263,8 +263,10 @@ def batch_items(
             raise ValueError(
                 f"Batch op {op!r} takes {shape}[, kwargs]; got {operation!r}."
             )
-        if op == "patch" and not unguarded_patch and _write_logic_above(
-            store, leaf, CosmosItems
+        if (
+            op == "patch"
+            and not unguarded_patch
+            and _write_logic_above(store, leaf, CosmosItems)
         ):
             raise TypeError(
                 "batch_items refused a 'patch': this store is wrapped (or subclassed), "
@@ -429,7 +431,12 @@ def delete_container(db_store, name: str, *, force: bool = False) -> None:
         leaf.database.delete_container(k)
 
     _routed(
-        db_store, leaf, "__delitem__", cascade, name, what="delete_container(force=True)"
+        db_store,
+        leaf,
+        "__delitem__",
+        cascade,
+        name,
+        what="delete_container(force=True)",
     )
 
 
