@@ -1,0 +1,60 @@
+{
+  "collection_duration_seconds": 3.507103443145752,
+  "commit_message": "Merge a1e77565d036b947d7e3b22d9c9a39a55dc4405f into d0072cbdcce76638eec504ae6174eddfa3d51c3c",
+  "commit_sha": "f11b981a8b746c5eab0ef6c2c45b6ba00939b4ac",
+  "metrics": {
+    "coverage": {
+      "branch_coverage": 0.0,
+      "error": "No coverage file found",
+      "line_coverage": 0.0,
+      "statements_covered": 0,
+      "statements_total": 0
+    },
+    "umpyre_stats": {
+      "comment_lines": 19880,
+      "comment_lines_ratio": 0.05911388641094261,
+      "docs_lines": 40677,
+      "empty_lines": 41488,
+      "empty_lines_ratio": 0.12336604222420458,
+      "errors": [
+        "auth.py: invalid non-printable character U+FEFF (auth.py, line 1)",
+        "_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)",
+        "documents.py: invalid non-printable character U+FEFF (documents.py, line 1)",
+        "_partition.py: invalid non-printable character U+FEFF (_partition.py, line 1)",
+        "_range.py: invalid non-printable character U+FEFF (_range.py, line 1)",
+        "exceptions.py: invalid non-printable character U+FEFF (exceptions.py, line 1)",
+        "errors.py: invalid non-printable character U+FEFF (errors.py, line 1)",
+        "_base.py: invalid non-printable character U+FEFF (_base.py, line 1)",
+        "cosmos_client.py: invalid non-printable character U+FEFF (cosmos_client.py, line 1)",
+        "http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)"
+      ],
+      "files_analyzed": 815,
+      "function_lines": 145847,
+      "function_lines_ratio": 0.43368123699078204,
+      "mean_lines_per_function": 16.858975840943245,
+      "num_classes": 2077,
+      "num_functions": 8651,
+      "pypi_version": "0.0.6",
+      "total_errors": 11,
+      "total_lines": 336300
+    },
+    "wily": {
+      "cyclomatic_avg": 0.0,
+      "error": "wily build failed: \u001b[31mFailed to setup archiver: 'Dirty repository, make sure you commit/stash files first'\u001b[0m\n",
+      "files_analyzed": 0,
+      "maintainability_index": 0.0,
+      "total_loc": 0
+    },
+    "workflow_status": {
+      "last_run_status": "success",
+      "last_success_timestamp": "2026-10-13T04:45:33Z",
+      "recent_failure_count": 0,
+      "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38347962616",
+      "total_runs_analyzed": 10
+    }
+  },
+  "python_version": "3.10",
+  "schema_version": "1.0",
+  "timestamp": "2026-10-13T08:48:14.717616Z",
+  "workflow_status": {}
+}

@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 3.4003586769104004,
-  "commit_message": "fix: pin each redirect to its expected leaf key; re-raise swallowed errors\n\nAdversarial review of #3: a layer that writes another key first (companion\ncontainer, audit record) received the operation's semantics; now the leaf\nrefuses any write but the expected (method, key). Errors a layer catches are\nre-raised; subclasses scoping by __contains__ are checked; messages no longer\nclaim a deferred write was not performed.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
-  "commit_sha": "a1e77565d036b947d7e3b22d9c9a39a55dc4405f",
+  "collection_duration_seconds": 3.507103443145752,
+  "commit_message": "Merge a1e77565d036b947d7e3b22d9c9a39a55dc4405f into d0072cbdcce76638eec504ae6174eddfa3d51c3c",
+  "commit_sha": "f11b981a8b746c5eab0ef6c2c45b6ba00939b4ac",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -11,11 +11,11 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 20026,
-      "comment_lines_ratio": 0.05916817103401003,
-      "docs_lines": 40710,
-      "empty_lines": 41821,
-      "empty_lines_ratio": 0.12356297217683677,
+      "comment_lines": 19880,
+      "comment_lines_ratio": 0.05911388641094261,
+      "docs_lines": 40677,
+      "empty_lines": 41488,
+      "empty_lines_ratio": 0.12336604222420458,
       "errors": [
         "auth.py: invalid non-printable character U+FEFF (auth.py, line 1)",
         "_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)",
@@ -28,15 +28,15 @@
         "cosmos_client.py: invalid non-printable character U+FEFF (cosmos_client.py, line 1)",
         "http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)"
       ],
-      "files_analyzed": 825,
-      "function_lines": 147406,
-      "function_lines_ratio": 0.4355209936801799,
-      "mean_lines_per_function": 16.852177889562135,
-      "num_classes": 2088,
-      "num_functions": 8747,
+      "files_analyzed": 815,
+      "function_lines": 145847,
+      "function_lines_ratio": 0.43368123699078204,
+      "mean_lines_per_function": 16.858975840943245,
+      "num_classes": 2077,
+      "num_functions": 8651,
       "pypi_version": "0.0.6",
       "total_errors": 11,
-      "total_lines": 338459
+      "total_lines": 336300
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -55,6 +55,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-13T08:48:08.181227Z",
+  "timestamp": "2026-10-13T08:48:14.717616Z",
   "workflow_status": {}
 }
