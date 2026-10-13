@@ -57,6 +57,16 @@ from cosmodol.trees import (
     CosmosAccount,
     CosmosDatabase,
 )
+from cosmodol.ops import (
+    BATCH_OPS,
+    add_container,
+    add_database,
+    batch_items,
+    delete_container,
+    delete_database,
+    partition,
+    replace_item,
+)
 from cosmodol.recipes import (
     cosmos_store,
     strip_system_fields,
@@ -94,6 +104,15 @@ __all__ = [
     # trees
     "CosmosAccount",
     "CosmosDatabase",
+    # key-taking operations (free functions; honour dol wrappers)
+    "BATCH_OPS",
+    "add_container",
+    "add_database",
+    "batch_items",
+    "delete_container",
+    "delete_database",
+    "partition",
+    "replace_item",
     # recipes
     "cosmos_store",
     "strip_system_fields",
