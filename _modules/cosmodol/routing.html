@@ -276,13 +276,40 @@
 <span class="sd">operation's semantics applied to it: that write is refused instead.</span>
 
 <span class="sd">The redirect is held in a ``ContextVar``, so it is invisible to other threads and tasks, and</span>
-<span class="sd">it only applies to the leaf object it names. The flip side: a layer that performs the write</span>
-<span class="sd">in another thread, or later (a write-behind buffer), escapes it, and that write happens as</span>
-<span class="sd">the leaf's ordinary upsert or delete.</span>
+<span class="sd">it only applies to the leaf object it names. The flip side is a layer that performs the</span>
+<span class="sd">write in another thread, or later (a write-behind buffer). Two things are done about it</span>
+<span class="sd">(i2mint/cosmodol#5):</span>
+
+<span class="sd">- While an operation is pending, a write of *the same leaf key* arriving from a context that</span>
+<span class="sd">  has no redirect (another thread, or a task that did not copy the context) is refused with</span>
+<span class="sd">  :class:`ConcurrentWriteError`, before it acts, instead of running as an ordinary upsert or</span>
+<span class="sd">  delete outside the operation's checks. Writes of other keys are not affected, and neither</span>
+<span class="sd">  is a write through a *different leaf object* on the same container (a ``partition()``</span>
+<span class="sd">  child, a second ``CosmosItems``): the registry matches leaves by identity.</span>
+<span class="sd">- A write performed *after* the operation has finished is indistinguishable from any other</span>
+<span class="sd">  writer's, so it cannot be refused: the operation raises :class:`RedirectError` when the</span>
+<span class="sd">  write it asked for never reached the leaf, which is the only signal there is.</span>
+
+<span class="sd">&gt;&gt;&gt; import threading</span>
+<span class="sd">&gt;&gt;&gt; started, release = threading.Event(), threading.Event()</span>
+<span class="sd">&gt;&gt;&gt; def slow(k, v):</span>
+<span class="sd">...     started.set(); release.wait(5); return "done"</span>
+<span class="sd">&gt;&gt;&gt; def op():</span>
+<span class="sd">...     with redirect(leaf, "__setitem__", "a", slow):</span>
+<span class="sd">...         leaf["a"] = 1</span>
+<span class="sd">&gt;&gt;&gt; t = threading.Thread(target=op); t.start(); _ = started.wait(5)</span>
+<span class="sd">&gt;&gt;&gt; try:</span>
+<span class="sd">...     leaf["a"] = 2  # same key, other thread, while the operation is pending</span>
+<span class="sd">... except ConcurrentWriteError as e:</span>
+<span class="sd">...     print("refused")</span>
+<span class="sd">refused</span>
+<span class="sd">&gt;&gt;&gt; leaf["b"] = 3  # another key is fine</span>
+<span class="sd">&gt;&gt;&gt; release.set(); t.join()</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">contextvars</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextVar</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -296,6 +323,13 @@
 
 
 
+<div class="viewcode-block" id="ConcurrentWriteError">
+<a class="viewcode-back" href="../../_autosummary/cosmodol.routing.html#cosmodol.routing.ConcurrentWriteError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConcurrentWriteError</span><span class="p">(</span><span class="n">RedirectError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A write of a key arrived from another thread or task while an operation on it was pending."""</span></div>
+
+
+
 <span class="c1">#: The leaf methods a redirect guards: while one is pending on a leaf, any of them called</span>
 <span class="c1">#: with anything but the expected method and key is refused.</span>
 <span class="n">WRITE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"__setitem__"</span><span class="p">,</span> <span class="s2">"__delitem__"</span><span class="p">)</span>
@@ -303,7 +337,9 @@
 
 <div class="viewcode-block" id="Redirect">
 <a class="viewcode-back" href="../../_autosummary/cosmodol.routing.html#cosmodol.routing.Redirect">[docs]</a>
-<span class="nd">@dataclass</span>
+<span class="nd">@dataclass</span><span class="p">(</span>
+    <span class="n">eq</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>  <span class="c1"># compared by identity: the registry removes by it, and a leaf's == reads the store</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Redirect</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""One pending redirect of ``leaf.&lt;method&gt;(key, ...)`` to ``handler``.</span>
 
@@ -324,6 +360,11 @@
 
 <span class="n">_active</span><span class="p">:</span> <span class="n">ContextVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Redirect</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ContextVar</span><span class="p">(</span><span class="s2">"cosmodol_redirect"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
+<span class="c1"># Every redirect pending in any thread, so that a write from a context with no redirect can be</span>
+<span class="c1"># checked against them (a ContextVar is invisible to other threads).</span>
+<span class="n">_pending</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Redirect</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">_pending_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
 
 <div class="viewcode-block" id="redirect">
 <a class="viewcode-back" href="../../_autosummary/cosmodol.routing.html#cosmodol.routing.redirect">[docs]</a>
@@ -337,11 +378,38 @@
 <span class="sd">    """</span>
     <span class="n">r</span> <span class="o">=</span> <span class="n">Redirect</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
     <span class="n">token</span> <span class="o">=</span> <span class="n">_active</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">_pending_lock</span><span class="p">:</span>
+        <span class="n">_pending</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">r</span>
     <span class="k">finally</span><span class="p">:</span>
-        <span class="n">_active</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">token</span><span class="p">)</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">_pending_lock</span><span class="p">:</span>
+                <span class="n">_pending</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">_active</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">token</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_if_pending</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a write of ``key`` on ``leaf`` while another context has an operation pending on it."""</span>
+    <span class="k">with</span> <span class="n">_pending_lock</span><span class="p">:</span>
+        <span class="n">pending</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_pending</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">leaf</span> <span class="ow">is</span> <span class="n">leaf</span> <span class="ow">and</span> <span class="n">_same_key</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)),</span> <span class="kc">None</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">pending</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConcurrentWriteError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">) on the cosmodol store was refused: another thread, task or "</span>
+            <span class="sa">f</span><span class="s2">"redirect has an operation (</span><span class="si">{</span><span class="n">pending</span><span class="o">.</span><span class="n">method</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">pending</span><span class="o">.</span><span class="n">key</span><span class="si">!r}</span><span class="s2">) pending on the same "</span>
+            <span class="s2">"key. Retry once it has finished (i2mint/cosmodol#5)."</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_key</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># an exotic key type: treat as different</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
 
 <div class="viewcode-block" id="claim">
@@ -354,6 +422,7 @@
 <span class="sd">    """</span>
     <span class="n">r</span> <span class="o">=</span> <span class="n">_active</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">leaf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">leaf</span><span class="p">:</span>
+        <span class="n">_refuse_if_pending</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">claimed</span><span class="p">:</span>
         <span class="n">outcome</span> <span class="o">=</span> <span class="s2">"failed"</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"was performed"</span>
@@ -406,7 +475,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=b45afc8c"></script>
+</div><script src="../../_static/documentation_options.js?v=162d0dcb"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

@@ -284,9 +284,40 @@ upsert or delete.</p>
 layer that writes some <em>other</em> key first (an index, an audit record) cannot have the
 operation’s semantics applied to it: that write is refused instead.</p>
 <p>The redirect is held in a <code class="docutils literal notranslate"><span class="pre">ContextVar</span></code>, so it is invisible to other threads and tasks, and
-it only applies to the leaf object it names. The flip side: a layer that performs the write
-in another thread, or later (a write-behind buffer), escapes it, and that write happens as
-the leaf’s ordinary upsert or delete.</p>
+it only applies to the leaf object it names. The flip side is a layer that performs the
+write in another thread, or later (a write-behind buffer). Two things are done about it
+(i2mint/cosmodol#5):</p>
+<ul>
+<li><p>While an operation is pending, a write of <em>the same leaf key</em> arriving from a context that
+has no redirect (another thread, or a task that did not copy the context) is refused with
+<a class="reference internal" href="#cosmodol.routing.ConcurrentWriteError" title="cosmodol.routing.ConcurrentWriteError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConcurrentWriteError</span></code></a>, before it acts, instead of running as an ordinary upsert or</p>
+<blockquote>
+<div><p>delete outside the operation’s checks. Writes of other keys are not affected, and neither
+is a write through a <em>different leaf object</em> on the same container (a <code class="docutils literal notranslate"><span class="pre">partition()</span></code>
+child, a second <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>): the registry matches leaves by identity.</p>
+</div></blockquote>
+</li>
+<li><p>A write performed <em>after</em> the operation has finished is indistinguishable from any other
+writer’s, so it cannot be refused: the operation raises <a class="reference internal" href="#cosmodol.routing.RedirectError" title="cosmodol.routing.RedirectError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RedirectError</span></code></a> when the
+write it asked for never reached the leaf, which is the only signal there is.</p></li>
+</ul>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">started</span><span class="p">,</span> <span class="n">release</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">(),</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">slow</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">started</span><span class="o">.</span><span class="n">set</span><span class="p">();</span> <span class="n">release</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span> <span class="k">return</span> <span class="s2">"done"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">op</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">redirect</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="n">slow</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">leaf</span><span class="p">[</span><span class="s2">"a"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">op</span><span class="p">);</span> <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">();</span> <span class="n">_</span> <span class="o">=</span> <span class="n">started</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">leaf</span><span class="p">[</span><span class="s2">"a"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># same key, other thread, while the operation is pending</span>
+<span class="gp">... </span><span class="k">except</span> <span class="n">ConcurrentWriteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">"refused"</span><span class="p">)</span>
+<span class="go">refused</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leaf</span><span class="p">[</span><span class="s2">"b"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># another key is fine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">release</span><span class="o">.</span><span class="n">set</span><span class="p">();</span> <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
 <p class="rubric">Module Attributes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -324,12 +355,22 @@ the leaf’s ordinary upsert or delete.</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.routing.RedirectError" title="cosmodol.routing.RedirectError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RedirectError</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.routing.ConcurrentWriteError" title="cosmodol.routing.ConcurrentWriteError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConcurrentWriteError</span></code></a></p></td>
+<td><p>A write of a key arrived from another thread or task while an operation on it was pending.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.routing.RedirectError" title="cosmodol.routing.RedirectError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RedirectError</span></code></a></p></td>
 <td><p>A wrapping layer did not turn one mapping write into exactly one leaf write.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py exception">
+<dt class="sig sig-object py" id="cosmodol.routing.ConcurrentWriteError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.routing.</span></span><span class="sig-name descname"><span class="pre">ConcurrentWriteError</span></span><a class="reference internal" href="../_modules/cosmodol/routing.html#ConcurrentWriteError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.routing.ConcurrentWriteError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cosmodol.routing.RedirectError" title="cosmodol.routing.RedirectError"><code class="xref py py-class docutils literal notranslate"><span class="pre">RedirectError</span></code></a></p>
+<p>A write of a key arrived from another thread or task while an operation on it was pending.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="cosmodol.routing.Redirect">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cosmodol.routing.</span></span><span class="sig-name descname"><span class="pre">Redirect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leaf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">handler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">claimed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/routing.html#Redirect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.routing.Redirect" title="Link to this definition">¶</a></dt>
@@ -442,6 +483,7 @@ mapping write was expected to reach the leaf once, as <code class="docutils lite
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">cosmodol.routing</a><ul>
+<li><a class="reference internal" href="#cosmodol.routing.ConcurrentWriteError"><code class="docutils literal notranslate"><span class="pre">ConcurrentWriteError</span></code></a></li>
 <li><a class="reference internal" href="#cosmodol.routing.Redirect"><code class="docutils literal notranslate"><span class="pre">Redirect</span></code></a></li>
 <li><a class="reference internal" href="#cosmodol.routing.RedirectError"><code class="docutils literal notranslate"><span class="pre">RedirectError</span></code></a></li>
 <li><a class="reference internal" href="#cosmodol.routing.WRITE_METHODS"><code class="docutils literal notranslate"><span class="pre">WRITE_METHODS</span></code></a></li>
@@ -458,7 +500,7 @@ mapping write was expected to reach the leaf once, as <code class="docutils lite
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=b45afc8c"></script>
+</div><script src="../_static/documentation_options.js?v=162d0dcb"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

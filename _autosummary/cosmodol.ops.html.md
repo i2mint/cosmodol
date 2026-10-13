@@ -55,10 +55,16 @@ What remains outside a function’s reach, stated rather than hidden (s3dol ADR-
 - A layer that performs the write in another thread or later (a write-behind buffer)
   escapes the redirect: that write is the leaf’s ordinary upsert or delete, without the
   operation’s semantics (no ETag check, outside a batch’s transaction). The function
-  raises `RedirectError`, but cannot undo it.
+  raises `RedirectError`, but cannot undo it. A write of the *same key* from another
+  thread or task while the operation is pending is refused (`ConcurrentWriteError`, a
+  `RedirectError`), so a layer that writes from a thread the operation waits for cannot
+  slip past it. What escapes: a write that lands after the operation has finished, and a
+  write through a different leaf object on the same container (`partition()` child, a
+  second `CosmosItems`).
 - `batch_items` collects its writes through the layers first and commits them as one
   transaction afterwards: a layer that acts after the inner write returns (a write-through
-  cache, an audit log) has acted even if the transaction then fails.
+  cache, an audit log) has acted even if the transaction then fails. The error that reaches
+  the caller carries a note (`__notes__`) naming the keys the layers had acted on.
 - `batch_items`’s `patch` operation has no mapping-write equivalent, so no layer’s
   write logic can run for it; on a wrapped (or subclassed) store it is refused unless
   `unguarded_patch=True`. Its key is still mapped and scope-checked.

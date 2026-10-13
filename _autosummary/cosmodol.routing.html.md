@@ -30,9 +30,37 @@ layer that writes some *other* key first (an index, an audit record) cannot have
 operation’s semantics applied to it: that write is refused instead.
 
 The redirect is held in a `ContextVar`, so it is invisible to other threads and tasks, and
-it only applies to the leaf object it names. The flip side: a layer that performs the write
-in another thread, or later (a write-behind buffer), escapes it, and that write happens as
-the leaf’s ordinary upsert or delete.
+it only applies to the leaf object it names. The flip side is a layer that performs the
+write in another thread, or later (a write-behind buffer). Two things are done about it
+(i2mint/cosmodol#5):
+
+- While an operation is pending, a write of *the same leaf key* arriving from a context that
+  has no redirect (another thread, or a task that did not copy the context) is refused with
+  [`ConcurrentWriteError`](#cosmodol.routing.ConcurrentWriteError), before it acts, instead of running as an ordinary upsert or
+  > delete outside the operation’s checks. Writes of other keys are not affected, and neither
+  > is a write through a *different leaf object* on the same container (a `partition()`
+  > child, a second `CosmosItems`): the registry matches leaves by identity.
+- A write performed *after* the operation has finished is indistinguishable from any other
+  writer’s, so it cannot be refused: the operation raises [`RedirectError`](#cosmodol.routing.RedirectError) when the
+  write it asked for never reached the leaf, which is the only signal there is.
+
+```pycon
+>>> import threading
+>>> started, release = threading.Event(), threading.Event()
+>>> def slow(k, v):
+...     started.set(); release.wait(5); return "done"
+>>> def op():
+...     with redirect(leaf, "__setitem__", "a", slow):
+...         leaf["a"] = 1
+>>> t = threading.Thread(target=op); t.start(); _ = started.wait(5)
+>>> try:
+...     leaf["a"] = 2  # same key, other thread, while the operation is pending
+... except ConcurrentWriteError as e:
+...     print("refused")
+refused
+>>> leaf["b"] = 3  # another key is fine
+>>> release.set(); t.join()
+```
 
 ### Module Attributes
 
@@ -52,8 +80,15 @@ the leaf’s ordinary upsert or delete.
 
 ### Exceptions
 
-| [`RedirectError`](#cosmodol.routing.RedirectError)   | A wrapping layer did not turn one mapping write into exactly one leaf write.   |
-|------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`ConcurrentWriteError`](#cosmodol.routing.ConcurrentWriteError)   | A write of a key arrived from another thread or task while an operation on it was pending.   |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`RedirectError`](#cosmodol.routing.RedirectError)          | A wrapping layer did not turn one mapping write into exactly one leaf write.                 |
+
+### *exception* cosmodol.routing.ConcurrentWriteError
+
+Bases: [`RedirectError`](#cosmodol.routing.RedirectError)
+
+A write of a key arrived from another thread or task while an operation on it was pending.
 
 ### *class* cosmodol.routing.Redirect(leaf, method, key, handler, claimed=False, result=None, error=None)
 

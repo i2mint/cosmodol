@@ -301,10 +301,16 @@
 <span class="sd">- A layer that performs the write in another thread or later (a write-behind buffer)</span>
 <span class="sd">  escapes the redirect: that write is the leaf's ordinary upsert or delete, without the</span>
 <span class="sd">  operation's semantics (no ETag check, outside a batch's transaction). The function</span>
-<span class="sd">  raises ``RedirectError``, but cannot undo it.</span>
+<span class="sd">  raises ``RedirectError``, but cannot undo it. A write of the *same key* from another</span>
+<span class="sd">  thread or task while the operation is pending is refused (``ConcurrentWriteError``, a</span>
+<span class="sd">  ``RedirectError``), so a layer that writes from a thread the operation waits for cannot</span>
+<span class="sd">  slip past it. What escapes: a write that lands after the operation has finished, and a</span>
+<span class="sd">  write through a different leaf object on the same container (``partition()`` child, a</span>
+<span class="sd">  second ``CosmosItems``).</span>
 <span class="sd">- ``batch_items`` collects its writes through the layers first and commits them as one</span>
 <span class="sd">  transaction afterwards: a layer that acts after the inner write returns (a write-through</span>
-<span class="sd">  cache, an audit log) has acted even if the transaction then fails.</span>
+<span class="sd">  cache, an audit log) has acted even if the transaction then fails. The error that reaches</span>
+<span class="sd">  the caller carries a note (``__notes__``) naming the keys the layers had acted on.</span>
 <span class="sd">- ``batch_items``'s ``patch`` operation has no mapping-write equivalent, so no layer's</span>
 <span class="sd">  write logic can run for it; on a wrapped (or subclassed) store it is refused unless</span>
 <span class="sd">  ``unguarded_patch=True``. Its key is still mapped and scope-checked.</span>
@@ -487,7 +493,7 @@
 <span class="sd">    opaque to any key mapping; use ``cosmodol.batch(container, triples, partition_key)``.</span>
 <span class="sd">    """</span>
     <span class="n">leaf</span> <span class="o">=</span> <span class="n">_leaf_of</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s2">"batch_items"</span><span class="p">)</span>
-    <span class="n">triples</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">triples</span><span class="p">,</span> <span class="n">created</span><span class="p">,</span> <span class="n">acted</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">(),</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">collect_write</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf_v</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf_v</span><span class="p">)</span>
@@ -533,6 +539,8 @@
         <span class="k">elif</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">created</span><span class="p">:</span>
             <span class="n">_require_member</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">ItemNotFoundError</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">)</span>
         <span class="n">what</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"batch_items </span><span class="si">{</span><span class="n">op</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"create"</span><span class="p">,</span> <span class="s2">"upsert"</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">,</span> <span class="s2">"delete"</span><span class="p">):</span>
+            <span class="n">acted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"create"</span><span class="p">,</span> <span class="s2">"upsert"</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">):</span>
             <span class="n">leaf_k</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">_routed</span><span class="p">(</span>
                 <span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">collect_write</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">what</span><span class="o">=</span><span class="n">what</span>
@@ -544,7 +552,21 @@
             <span class="n">leaf_k</span> <span class="o">=</span> <span class="n">collect_key</span><span class="p">(</span><span class="n">_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
             <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"patch"</span> <span class="k">else</span> <span class="p">(</span><span class="n">leaf_k</span><span class="p">,)</span>
         <span class="n">triples</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">op</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">_batch</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">triples</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span></div>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_batch</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">triples</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">acted</span> <span class="ow">and</span> <span class="n">_write_logic_above</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">):</span>
+            <span class="n">note</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">"batch_items: the batch may not have committed, but the wrapping layers had "</span>
+                <span class="sa">f</span><span class="s2">"already run their write logic for these keys: </span><span class="si">{</span><span class="n">acted</span><span class="si">!r}</span><span class="s2">. A write-through "</span>
+                <span class="s2">"cache, audit log or index they keep may now disagree with the container "</span>
+                <span class="s2">"(i2mint/cosmodol#5)."</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"add_note"</span><span class="p">):</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Python 3.10: the same attribute, which only newer tracebacks print</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">__notes__</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"__notes__"</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">note</span><span class="p">]</span>
+        <span class="k">raise</span></div>
 
 
 
@@ -803,7 +825,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=b45afc8c"></script>
+</div><script src="../../_static/documentation_options.js?v=162d0dcb"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

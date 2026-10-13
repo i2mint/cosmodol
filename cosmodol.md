@@ -1,4 +1,4 @@
-> built 2026-10-13 08:50 UTC from a6aa9dd (master) · cosmodol 0.0.7. Details: build_info.json
+> built 2026-10-13 23:20 UTC from 376808e (master) · cosmodol 0.0.8. Details: build_info.json
 
 # index.html.md
 
@@ -1003,10 +1003,16 @@ What remains outside a function’s reach, stated rather than hidden (s3dol ADR-
 - A layer that performs the write in another thread or later (a write-behind buffer)
   escapes the redirect: that write is the leaf’s ordinary upsert or delete, without the
   operation’s semantics (no ETag check, outside a batch’s transaction). The function
-  raises `RedirectError`, but cannot undo it.
+  raises `RedirectError`, but cannot undo it. A write of the *same key* from another
+  thread or task while the operation is pending is refused (`ConcurrentWriteError`, a
+  `RedirectError`), so a layer that writes from a thread the operation waits for cannot
+  slip past it. What escapes: a write that lands after the operation has finished, and a
+  write through a different leaf object on the same container (`partition()` child, a
+  second `CosmosItems`).
 - `batch_items` collects its writes through the layers first and commits them as one
   transaction afterwards: a layer that acts after the inner write returns (a write-through
-  cache, an audit log) has acted even if the transaction then fails.
+  cache, an audit log) has acted even if the transaction then fails. The error that reaches
+  the caller carries a note (`__notes__`) naming the keys the layers had acted on.
 - `batch_items`’s `patch` operation has no mapping-write equivalent, so no layer’s
   write logic can run for it; on a wrapped (or subclassed) store it is refused unless
   `unguarded_patch=True`. Its key is still mapped and scope-checked.
@@ -1244,9 +1250,37 @@ layer that writes some *other* key first (an index, an audit record) cannot have
 operation’s semantics applied to it: that write is refused instead.
 
 The redirect is held in a `ContextVar`, so it is invisible to other threads and tasks, and
-it only applies to the leaf object it names. The flip side: a layer that performs the write
-in another thread, or later (a write-behind buffer), escapes it, and that write happens as
-the leaf’s ordinary upsert or delete.
+it only applies to the leaf object it names. The flip side is a layer that performs the
+write in another thread, or later (a write-behind buffer). Two things are done about it
+(i2mint/cosmodol#5):
+
+- While an operation is pending, a write of *the same leaf key* arriving from a context that
+  has no redirect (another thread, or a task that did not copy the context) is refused with
+  [`ConcurrentWriteError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.ConcurrentWriteError), before it acts, instead of running as an ordinary upsert or
+  > delete outside the operation’s checks. Writes of other keys are not affected, and neither
+  > is a write through a *different leaf object* on the same container (a `partition()`
+  > child, a second `CosmosItems`): the registry matches leaves by identity.
+- A write performed *after* the operation has finished is indistinguishable from any other
+  writer’s, so it cannot be refused: the operation raises [`RedirectError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.RedirectError) when the
+  write it asked for never reached the leaf, which is the only signal there is.
+
+```pycon
+>>> import threading
+>>> started, release = threading.Event(), threading.Event()
+>>> def slow(k, v):
+...     started.set(); release.wait(5); return "done"
+>>> def op():
+...     with redirect(leaf, "__setitem__", "a", slow):
+...         leaf["a"] = 1
+>>> t = threading.Thread(target=op); t.start(); _ = started.wait(5)
+>>> try:
+...     leaf["a"] = 2  # same key, other thread, while the operation is pending
+... except ConcurrentWriteError as e:
+...     print("refused")
+refused
+>>> leaf["b"] = 3  # another key is fine
+>>> release.set(); t.join()
+```
 
 ### Module Attributes
 
@@ -1266,8 +1300,15 @@ the leaf’s ordinary upsert or delete.
 
 ### Exceptions
 
-| [`RedirectError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.RedirectError)   | A wrapping layer did not turn one mapping write into exactly one leaf write.   |
-|------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [`ConcurrentWriteError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.ConcurrentWriteError)   | A write of a key arrived from another thread or task while an operation on it was pending.   |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [`RedirectError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.RedirectError)          | A wrapping layer did not turn one mapping write into exactly one leaf write.                 |
+
+### *exception* cosmodol.routing.ConcurrentWriteError
+
+Bases: [`RedirectError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.RedirectError)
+
+A write of a key arrived from another thread or task while an operation on it was pending.
 
 ### *class* cosmodol.routing.Redirect(leaf, method, key, handler, claimed=False, result=None, error=None)
 
@@ -1543,20 +1584,20 @@ Mapping of container name → `ContainerProxy` (or store-wrapped form).
 
 # About this build
 
-This documentation was built on **2026-10-13 08:50 UTC** from commit <a href="https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae"><code>a6aa9dd</code></a> on branch <code>master</code>, for **cosmodol 0.0.7** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-13 23:20 UTC** from commit <a href="https://github.com/i2mint/cosmodol/commit/376808e35ce1800b62815e6b63562f082eb2ff8b"><code>376808e</code></a> on branch <code>master</code>, for **cosmodol 0.0.8** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.0.7) is ahead of the latest release on PyPI (0.0.6): these docs describe unreleased code.
+- The documented version (0.0.8) is ahead of the latest release on PyPI (0.0.7): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                        |
 |---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae"><code>a6aa9dd80680ec97cfa264a063454c59534f04ae</code></a> |
+| Commit              | <a href="https://github.com/i2mint/cosmodol/commit/376808e35ce1800b62815e6b63562f082eb2ff8b"><code>376808e35ce1800b62815e6b63562f082eb2ff8b</code></a> |
 | Branch              | <code>master</code>                                                                                                                                    |
-| Tags at this commit | <code>0.0.7</code>                                                                                                                                     |
+| Tags at this commit | <code>0.0.8</code>                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                  |
 | Remote              | <code>https://github.com/i2mint/cosmodol</code>                                                                                                        |
 
@@ -1565,15 +1606,15 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/cosmodol</code>                                                               |
-| Run          | <a href="https://github.com/i2mint/cosmodol/actions/runs/38371868873">38371868873</a>      |
+| Run          | <a href="https://github.com/i2mint/cosmodol/actions/runs/38483452021">38483452021</a>      |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>a3f5fa85c035df5950133dd8992fd603770acbad</code> (in the history of the built commit) |
+| Event commit | <code>b1d10827e058a425c78ab04a89e0554c89dc81e0</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.15  |
+| epythet  | 0.2.17  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
@@ -1592,14 +1633,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/cosmodol/0.0.6/">0.0.6</a>, older than the documented version (0.0.7).
+Latest release: <a href="https://pypi.org/project/cosmodol/0.0.7/">0.0.7</a>, older than the documented version (0.0.8).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/cosmodol && cd cosmodol
-git checkout a6aa9dd80680ec97cfa264a063454c59534f04ae
-pip install "epythet==0.2.15"
+git checkout 376808e35ce1800b62815e6b63562f082eb2ff8b
+pip install "epythet==0.2.17"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

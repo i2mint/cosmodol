@@ -27,5 +27,6 @@ cosmodol.routing
 
    .. autosummary::
    
+      ConcurrentWriteError
       RedirectError
    
