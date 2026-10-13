@@ -266,3 +266,96 @@ def test_a_subclass_scoping_by_contains_is_honoured():
     with pytest.raises(KeyError):
         replace_item(store, "doc1", {"payload": "X"})
     assert _state(c)["doc1"] == "SOMEONE ELSE'S"
+
+
+# ---------------------------------------------------------------------------
+# Limits of the redirect (i2mint/cosmodol#5)
+# ---------------------------------------------------------------------------
+
+
+class _ThreadedWrite(Store):
+    """A write-behind-ish layer: it writes through a worker thread (the redirect's ContextVar
+    does not follow it) and waits for it, so the write happens while the operation is pending."""
+
+    def __init__(self, store):
+        super().__init__(store)
+        self.thread_error = None
+
+    def __setitem__(self, k, v):
+        import threading
+
+        def work():
+            try:
+                self.store[k] = v
+            except BaseException as e:  # noqa: BLE001
+                self.thread_error = e
+
+        t = threading.Thread(target=work)
+        t.start()
+        t.join()
+
+
+def test_a_same_key_write_from_another_thread_during_an_operation_is_refused():
+    from cosmodol.routing import ConcurrentWriteError
+
+    c = _container()
+    before = _state(c)
+    store = _ThreadedWrite(_leaf(c))
+    with pytest.raises(RedirectError):  # the write the operation asked for never arrived
+        replace_item(store, "app_doc1", {"payload": "X"})
+    assert isinstance(store.thread_error, ConcurrentWriteError)
+    assert _state(c) == before  # the thread's write did not run as an ordinary upsert
+
+
+def test_writes_of_other_keys_and_after_the_operation_are_not_refused():
+    import threading
+
+    from cosmodol.routing import redirect
+
+    c = _container()
+    leaf = _leaf(c)
+    started, release = threading.Event(), threading.Event()
+
+    def slow(k, v):
+        started.set()
+        release.wait(5)
+
+    def op():
+        with redirect(leaf, "__setitem__", "app_doc1", slow):
+            leaf["app_doc1"] = {"payload": "X"}
+
+    t = threading.Thread(target=op)
+    t.start()
+    assert started.wait(5)
+    errors = []
+
+    def other():
+        try:
+            leaf["elsewhere"] = {"payload": "O"}
+        except BaseException as e:  # noqa: BLE001
+            errors.append(e)
+
+    t2 = threading.Thread(target=other)
+    t2.start()
+    t2.join()
+    release.set()
+    t.join()
+    assert errors == []
+    leaf["app_doc1"] = {"payload": "after"}  # the window has closed
+    assert _state(c)["app_doc1"] == "after" and _state(c)["elsewhere"] == "O"
+
+
+def test_a_failed_batch_names_the_keys_the_layers_already_acted_on():
+    c = _container()
+    store = _WriteThrough(_leaf(c))
+    with pytest.raises(Exception) as exc:
+        batch_items(
+            store,
+            [
+                ("upsert", "app_new", {"payload": "N"}),
+                ("replace", "app_doc1", {"payload": "E"}, {"if_match_etag": "stale"}),
+            ],
+        )
+    notes = getattr(exc.value, "__notes__", [])
+    assert any("app_new" in n and "app_doc1" in n for n in notes)
+    assert "app_doc1" in store.cache  # the layer did act, as the note says

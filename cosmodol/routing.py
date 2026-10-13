@@ -26,13 +26,38 @@ layer that writes some *other* key first (an index, an audit record) cannot have
 operation's semantics applied to it: that write is refused instead.
 
 The redirect is held in a ``ContextVar``, so it is invisible to other threads and tasks, and
-it only applies to the leaf object it names. The flip side: a layer that performs the write
-in another thread, or later (a write-behind buffer), escapes it, and that write happens as
-the leaf's ordinary upsert or delete.
+it only applies to the leaf object it names. The flip side is a layer that performs the
+write in another thread, or later (a write-behind buffer). Two things are done about it
+(i2mint/cosmodol#5):
+
+- While an operation is pending, a write of *the same leaf key* arriving from a context that
+  has no redirect (another thread, or a task that did not copy the context) is refused with
+  :class:`ConcurrentWriteError`, before it acts, instead of running as an ordinary upsert or
+  delete outside the operation's checks. Writes of other keys are not affected.
+- A write performed *after* the operation has finished is indistinguishable from any other
+  writer's, so it cannot be refused: the operation raises :class:`RedirectError` when the
+  write it asked for never reached the leaf, which is the only signal there is.
+
+>>> import threading
+>>> started, release = threading.Event(), threading.Event()
+>>> def slow(k, v):
+...     started.set(); release.wait(5); return "done"
+>>> def op():
+...     with redirect(leaf, "__setitem__", "a", slow):
+...         leaf["a"] = 1
+>>> t = threading.Thread(target=op); t.start(); _ = started.wait(5)
+>>> try:
+...     leaf["a"] = 2  # same key, other thread, while the operation is pending
+... except ConcurrentWriteError as e:
+...     print("refused")
+refused
+>>> leaf["b"] = 3  # another key is fine
+>>> release.set(); t.join()
 """
 
 from __future__ import annotations
 
+import threading
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
@@ -41,6 +66,10 @@ from typing import Any, Callable, Iterator, Optional
 
 class RedirectError(RuntimeError):
     """A wrapping layer did not turn one mapping write into exactly one leaf write."""
+
+
+class ConcurrentWriteError(RedirectError):
+    """A write of a key arrived from another thread or task while an operation on it was pending."""
 
 
 #: The leaf methods a redirect guards: while one is pending on a leaf, any of them called
@@ -68,6 +97,11 @@ class Redirect:
 
 _active: ContextVar[Optional[Redirect]] = ContextVar("cosmodol_redirect", default=None)
 
+# Every redirect pending in any thread, so that a write from a context with no redirect can be
+# checked against them (a ContextVar is invisible to other threads).
+_pending: list[Redirect] = []
+_pending_lock = threading.Lock()
+
 
 @contextmanager
 def redirect(leaf, method: str, key, handler: Callable) -> Iterator[Redirect]:
@@ -79,10 +113,35 @@ def redirect(leaf, method: str, key, handler: Callable) -> Iterator[Redirect]:
     """
     r = Redirect(leaf, method, key, handler)
     token = _active.set(r)
+    with _pending_lock:
+        _pending.append(r)
     try:
         yield r
     finally:
+        with _pending_lock:
+            _pending.remove(r)
         _active.reset(token)
+
+
+def _refuse_if_pending(leaf, method: str, key) -> None:
+    """Refuse a write of ``key`` on ``leaf`` while another context has an operation pending on it."""
+    with _pending_lock:
+        pending = next(
+            (p for p in _pending if p.leaf is leaf and _same_key(p.key, key)), None
+        )
+    if pending is not None:
+        raise ConcurrentWriteError(
+            f"{method}({key!r}) on the cosmodol store was refused: another thread or task "
+            f"has an operation ({pending.method} of {pending.key!r}) pending on the same "
+            "key. Retry once it has finished (i2mint/cosmodol#5)."
+        )
+
+
+def _same_key(a, b) -> bool:
+    try:
+        return bool(a == b)
+    except Exception:  # an exotic key type: treat as different
+        return False
 
 
 def claim(leaf, method: str, key) -> Optional[Callable]:
@@ -93,6 +152,7 @@ def claim(leaf, method: str, key) -> Optional[Callable]:
     """
     r = _active.get()
     if r is None or r.leaf is not leaf:
+        _refuse_if_pending(leaf, method, key)
         return None
     if r.claimed:
         outcome = "failed" if r.error is not None else "was performed"
