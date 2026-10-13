@@ -1,4 +1,4 @@
-> built 2026-10-13 04:45 UTC from d0072cb (master) · cosmodol 0.0.6. Details: build_info.json
+> built 2026-10-13 08:50 UTC from a6aa9dd (master) · cosmodol 0.0.7. Details: build_info.json
 
 # index.html.md
 
@@ -418,7 +418,7 @@ If your Cosmos account was provisioned with the **MongoDB API**, use `pymongo` +
 | [`validate_cosmos_id`](_autosummary/cosmodol.html.md#cosmodol.validate_cosmos_id)(k)                             | Raise `ValueError` if `k` is not a valid Cosmos item `id`.                      |
 | [`add_container`](_autosummary/cosmodol.html.md#cosmodol.add_container)(db_store, name, \*[, ...])          | Create a container named `name` (in the caller's key space) in `db_store`.      |
 | [`add_database`](_autosummary/cosmodol.html.md#cosmodol.add_database)(account_store, name, \*[, ...])      | Create database `name` (in the caller's key space).                             |
-| [`batch_items`](_autosummary/cosmodol.html.md#cosmodol.batch_items)(store, operations)                    | Transactional batch within the store's partition, in the caller's key space.    |
+| [`batch_items`](_autosummary/cosmodol.html.md#cosmodol.batch_items)(store, operations, \*[, ...])         | Transactional batch within the store's partition, in the caller's key space.    |
 | [`delete_container`](_autosummary/cosmodol.html.md#cosmodol.delete_container)(db_store, name, \*[, force])     | Drop container `name` (in the caller's key space); `force` empties it first.    |
 | [`delete_database`](_autosummary/cosmodol.html.md#cosmodol.delete_database)(account_store, name, \*[, force]) | Drop database `name` (in the caller's key space); `force` drops its containers. |
 | [`partition`](_autosummary/cosmodol.html.md#cosmodol.partition)(store, pk_value, \*[, wrap])            | Narrow a `CosmosPartitionedItems` to one partition; zero round-trips.           |
@@ -659,6 +659,10 @@ Alias for field number 0
 
 Create a container named `name` (in the caller’s key space) in `db_store`.
 
+Goes through `db_store[name] = <the settings>`, so every layer maps, scopes or
+refuses the name as usual; the leaf creates the container from the arguments given
+here (the value a layer passes down is ignored).
+
 * **Parameters:**
   * **db_store** – A `CosmosDatabase`, or a `dol` wrapper around one.
   * **name** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Container name, as `db_store[name]` would take it.
@@ -678,6 +682,7 @@ Create a container named `name` (in the caller’s key space) in `db_store`.
 
 Create database `name` (in the caller’s key space).
 
+Goes through `account_store[name] = <the settings>` (see `add_container`).
 Returns the leaf’s value for it (its `database_factory` output, a
 `CosmosDatabase` by default), not `account_store[name]`: a wrapper that does not
 expose the new name would otherwise raise after the database was created.
@@ -696,7 +701,7 @@ Transactional batch within one logical partition.
 * **Returns:**
   List of per-op result dicts as returned by the SDK.
 
-### cosmodol.batch_items(store, operations)
+### cosmodol.batch_items(store, operations, , unguarded_patch=False)
 
 Transactional batch within the store’s partition, in the caller’s key space.
 
@@ -708,11 +713,15 @@ such as `{"if_match_etag": etag}`:
 [("upsert", "a", {"v": 1}), ("replace", "b", {"v": 2}), ("delete", "c")]
 ```
 
-Keys (and values, except `patch` operation lists) are mapped down to the leaf exactly
-as `replace_item` maps them, and bodies get the leaf’s usual `id` /
-partition-key injection. On a wrapped store, every key a `read`, `replace`,
-`patch` or `delete` targets must be in the store (one point read each), unless an
-earlier `create`/`upsert` of the same batch makes it. The SDK’s raw
+Each `create`/`upsert`/`replace` is collected through `store[k] = v` and each
+`delete` through `del store[k]`, so every layer maps, checks or refuses it as
+usual; nothing is sent until all operations are collected, then they commit as one
+transaction. Bodies get the leaf’s usual `id` / partition-key injection. On a
+wrapped store, every key a `read`, `replace`, `patch` or `delete` targets must
+be in the store (one point read each), unless an earlier `create`/`upsert` of the
+same batch makes it. `read` and `patch` keys are mapped with each layer’s
+`_id_of_key`; `patch` operations are refused on a wrapped or subclassed store
+unless `unguarded_patch=True` (no layer’s write logic can run for a patch). The SDK’s raw
 `(op, args, kwargs)` triples are not accepted here, because the ids inside them are
 opaque to any key mapping; use `cosmodol.batch(container, triples, partition_key)`.
 
@@ -756,7 +765,8 @@ Drop container `name` (in the caller’s key space); `force` empties it first.
 
 Without `force` this is `del db_store[name]`, which refuses a non-empty container.
 With `force=True` every item is deleted, one point delete each, and then the
-container is dropped. Not recoverable without a Cosmos backup.
+container is dropped, through `del db_store[name]` so every layer maps, scopes or
+refuses it as usual. Not recoverable without a Cosmos backup.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -853,8 +863,9 @@ Unlike `store[k] = v` (an upsert), this fails with `ItemNotFoundError` if the it
 does not exist, and with a precondition error if `etag` no longer matches.
 
 * **Parameters:**
-  * **store** – A `CosmosItems`, or any `dol` wrapper around one. `k` and `v` are in
-    the *caller’s* key and value space; they are mapped down to the leaf.
+  * **store** – A `CosmosItems`, or any `dol` wrapper around one. The write goes through
+    `store[k] = v`, so every layer maps, checks or refuses it as usual; only the
+    leaf’s upsert becomes a replace.
   * **k** – The key, as `store[k]` would take it.
   * **v** – The value, as `store[k] = v` would take it.
   * **etag** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – If given, only replace when the stored item’s `_etag` still equals it.
@@ -927,6 +938,7 @@ the SDK. We fail loudly at write time. See `misc/docs/cosmos_db_reference.md`
 | [`errors`](_autosummary/cosmodol.errors.html.md#module-cosmodol.errors)         | Custom exceptions and error-translation decorator for cosmodol.                      |
 | [`ops`](_autosummary/cosmodol.ops.html.md#module-cosmodol.ops)               | Key-taking operations, as free functions over the caller's (possibly wrapped) store. |
 | [`recipes`](_autosummary/cosmodol.recipes.html.md#module-cosmodol.recipes)       | Convenience wrappers and factories for cosmodol.                                     |
+| [`routing`](_autosummary/cosmodol.routing.html.md#module-cosmodol.routing)       | Route an operation through a wrapped store's own `__setitem__`/`__delitem__`.        |
 | [`stores`](_autosummary/cosmodol.stores.html.md#module-cosmodol.stores)         | Mapping stores over a Cosmos DB container.                                           |
 | [`testing`](_autosummary/cosmodol.testing.html.md#module-cosmodol.testing)       | Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.        |
 | [`trees`](_autosummary/cosmodol.trees.html.md#module-cosmodol.trees)           | Tree-shaped stores: mapping-of-databases and mapping-of-containers.                  |
@@ -963,26 +975,42 @@ The same design is s3dol’s ADR-0011 (keyed capabilities leave the store’s me
 destructive ones become free functions). The removed methods now raise an
 `AttributeError` that names their replacement here.
 
-What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):
+How a function honours the wrapper (i2mint/cosmodol#3): every write goes through the
+caller’s store itself. A function performs the plain mapping write (`store[k] = v` or
+`del store[k]`) on the outer store, after telling the cosmodol leaf, through
+`cosmodol.routing`, how to execute the one write that reaches it (a conditional replace,
+a batch entry, a cascade, a create). So each layer runs exactly as it does for that
+mapping write:
 
-- **Key mapping** — honoured. Keys are resolved with `dol.inner_most_key`, i.e. each
-  wrapping layer’s `_id_of_key` (`wrap_kvs`, `KeyCodecs`, `Pipe`, class- and
-  instance-wraps alike). A hand-rolled `__getattr__` passthrough layer can make it
-  apply a transform twice.
-- **Scope** — honoured for operations on *existing* resources. On a wrapped store,
-  `replace_item`, `batch_items`’s read/replace/patch/delete, and the forced
-  `delete_container` / `delete_database` first check `k in store` through the
-  outer store, so a `filt_iter` scope (or any wrapper whose `__contains__` says no)
-  stops them. That is one extra point read per key. Operations that *create* (batch
-  `create`/`upsert`, `add_container`, `add_database`) cannot ask a filter, since
-  the key does not exist yet: they honour the key mapping only.
-- **Values** — `replace_item` and `batch_items` pass values through each layer’s
-  `_data_of_obj` (what `wrap_kvs(data_of_obj=...)` and `ValueCodecs` install). A
-  key-aware `preset=` write hook is **not** followed (it only runs inside
-  `__setitem__`), and returned documents are in stored (leaf) form.
-- **Guards and caches** — not seen. A layer that refuses writes in its own
-  `__setitem__`/`__delitem__`, or caches values, is bypassed by any function,
-  exactly as by the old methods. Pass such a store only if you mean to bypass it.
+- **Key and value mapping**, `preset=` hooks, `ValueCodecs`: applied by the layers
+  themselves, class- and instance-wraps alike.
+- **Write guards**: a layer whose `__setitem__`/`__delitem__` refuses (a read-only
+  wrapper, `dol.disable_setitem`) refuses the operation too.
+- **Scope**: a `filt_iter` scope refuses out-of-scope keys in its `__setitem__` /
+  `__delitem__`, now including keys an operation *creates* (batch `create`/`upsert`,
+  `add_container`, `add_database`). Operations on *existing* resources also check
+  `k in store` through the outer store first (one point read), for wrappers that scope
+  only by `__contains__`.
+- **Write-through caches** see the value they would see for `store[k] = v`. A cache
+  that only fills on reads (`dol.cache_vals`) is stale after any write, mapping or not.
+- **A layer that writes another key first** (an index, an audit record), \*\*writes twice,
+  or swallows the write\*\* makes the function raise `cosmodol.routing.RedirectError`;
+  the leaf refuses any write but the expected one, before acting. An error a layer
+  catches is re-raised to the caller.
+
+What remains outside a function’s reach, stated rather than hidden (s3dol ADR-0011 D3a):
+
+- A layer that performs the write in another thread or later (a write-behind buffer)
+  escapes the redirect: that write is the leaf’s ordinary upsert or delete, without the
+  operation’s semantics (no ETag check, outside a batch’s transaction). The function
+  raises `RedirectError`, but cannot undo it.
+- `batch_items` collects its writes through the layers first and commits them as one
+  transaction afterwards: a layer that acts after the inner write returns (a write-through
+  cache, an audit log) has acted even if the transaction then fails.
+- `batch_items`’s `patch` operation has no mapping-write equivalent, so no layer’s
+  write logic can run for it; on a wrapped (or subclassed) store it is refused unless
+  `unguarded_patch=True`. Its key is still mapped and scope-checked.
+- Returned documents (`replace_item`, batch results) are in stored (leaf) form.
 
 ### Module Attributes
 
@@ -993,7 +1021,7 @@ What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):
 
 | [`replace_item`](_autosummary/cosmodol.ops.html.md#cosmodol.ops.replace_item)(store, k, v, \*[, etag])             | Full replace of the existing item at key `k`, optionally ETag-conditional.      |
 |----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`batch_items`](_autosummary/cosmodol.ops.html.md#cosmodol.ops.batch_items)(store, operations)                    | Transactional batch within the store's partition, in the caller's key space.    |
+| [`batch_items`](_autosummary/cosmodol.ops.html.md#cosmodol.ops.batch_items)(store, operations, \*[, ...])         | Transactional batch within the store's partition, in the caller's key space.    |
 | [`partition`](_autosummary/cosmodol.ops.html.md#cosmodol.ops.partition)(store, pk_value, \*[, wrap])            | Narrow a `CosmosPartitionedItems` to one partition; zero round-trips.           |
 | [`add_container`](_autosummary/cosmodol.ops.html.md#cosmodol.ops.add_container)(db_store, name, \*[, ...])          | Create a container named `name` (in the caller's key space) in `db_store`.      |
 | [`delete_container`](_autosummary/cosmodol.ops.html.md#cosmodol.ops.delete_container)(db_store, name, \*[, force])     | Drop container `name` (in the caller's key space); `force` empties it first.    |
@@ -1007,6 +1035,10 @@ Operations `batch_items` accepts, and whether each carries a value.
 ### cosmodol.ops.add_container(db_store, name, , partition_key_path='/id', throughput=None, indexing_policy=None, default_ttl=None, unique_key_policy=None, conflict_resolution_policy=None, \*\*extra)
 
 Create a container named `name` (in the caller’s key space) in `db_store`.
+
+Goes through `db_store[name] = <the settings>`, so every layer maps, scopes or
+refuses the name as usual; the leaf creates the container from the arguments given
+here (the value a layer passes down is ignored).
 
 * **Parameters:**
   * **db_store** – A `CosmosDatabase`, or a `dol` wrapper around one.
@@ -1027,11 +1059,12 @@ Create a container named `name` (in the caller’s key space) in `db_store`.
 
 Create database `name` (in the caller’s key space).
 
+Goes through `account_store[name] = <the settings>` (see `add_container`).
 Returns the leaf’s value for it (its `database_factory` output, a
 `CosmosDatabase` by default), not `account_store[name]`: a wrapper that does not
 expose the new name would otherwise raise after the database was created.
 
-### cosmodol.ops.batch_items(store, operations)
+### cosmodol.ops.batch_items(store, operations, , unguarded_patch=False)
 
 Transactional batch within the store’s partition, in the caller’s key space.
 
@@ -1043,11 +1076,15 @@ such as `{"if_match_etag": etag}`:
 [("upsert", "a", {"v": 1}), ("replace", "b", {"v": 2}), ("delete", "c")]
 ```
 
-Keys (and values, except `patch` operation lists) are mapped down to the leaf exactly
-as `replace_item` maps them, and bodies get the leaf’s usual `id` /
-partition-key injection. On a wrapped store, every key a `read`, `replace`,
-`patch` or `delete` targets must be in the store (one point read each), unless an
-earlier `create`/`upsert` of the same batch makes it. The SDK’s raw
+Each `create`/`upsert`/`replace` is collected through `store[k] = v` and each
+`delete` through `del store[k]`, so every layer maps, checks or refuses it as
+usual; nothing is sent until all operations are collected, then they commit as one
+transaction. Bodies get the leaf’s usual `id` / partition-key injection. On a
+wrapped store, every key a `read`, `replace`, `patch` or `delete` targets must
+be in the store (one point read each), unless an earlier `create`/`upsert` of the
+same batch makes it. `read` and `patch` keys are mapped with each layer’s
+`_id_of_key`; `patch` operations are refused on a wrapped or subclassed store
+unless `unguarded_patch=True` (no layer’s write logic can run for a patch). The SDK’s raw
 `(op, args, kwargs)` triples are not accepted here, because the ids inside them are
 opaque to any key mapping; use `cosmodol.batch(container, triples, partition_key)`.
 
@@ -1060,7 +1097,8 @@ Drop container `name` (in the caller’s key space); `force` empties it first.
 
 Without `force` this is `del db_store[name]`, which refuses a non-empty container.
 With `force=True` every item is deleted, one point delete each, and then the
-container is dropped. Not recoverable without a Cosmos backup.
+container is dropped, through `del db_store[name]` so every layer maps, scopes or
+refuses it as usual. Not recoverable without a Cosmos backup.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -1105,8 +1143,9 @@ Unlike `store[k] = v` (an upsert), this fails with `ItemNotFoundError` if the it
 does not exist, and with a precondition error if `etag` no longer matches.
 
 * **Parameters:**
-  * **store** – A `CosmosItems`, or any `dol` wrapper around one. `k` and `v` are in
-    the *caller’s* key and value space; they are mapped down to the leaf.
+  * **store** – A `CosmosItems`, or any `dol` wrapper around one. The write goes through
+    `store[k] = v`, so every layer maps, checks or refuses it as usual; only the
+    leaf’s upsert becomes a replace.
   * **k** – The key, as `store[k]` would take it.
   * **v** – The value, as `store[k] = v` would take it.
   * **etag** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – If given, only replace when the stored item’s `_etag` still equals it.
@@ -1169,6 +1208,111 @@ Return `item` with Cosmos system fields removed.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+
+# _autosummary/cosmodol.routing.html.md
+
+# cosmodol.routing
+
+Route an operation through a wrapped store’s own `__setitem__`/`__delitem__`.
+
+The functions in `cosmodol.ops` need Cosmos semantics a mapping write does not have (a
+conditional replace, a transactional batch, a cascading delete, a parameterised create).
+Calling the leaf directly skips every wrapping layer’s own write logic: write guards,
+write-through caches, `preset=` hooks, scope filters on new keys (i2mint/cosmodol#3).
+Instead, an operation *redirects* the leaf: it installs a one-shot handler for one leaf
+method, then performs the plain mapping write (`store[k] = v` / `del store[k]`) on the
+caller’s outer store. Every layer runs exactly as for that write; when the call reaches the
+leaf, the leaf hands its (fully mapped) arguments to the handler instead of doing its usual
+upsert or delete.
+
+```pycon
+>>> class Leaf(dict):
+...     def __setitem__(self, k, v):
+...         if (handler := claim(self, "__setitem__", k)) is not None:
+...             return handler(k, v)
+...         super().__setitem__(k, v)
+>>> leaf = Leaf()
+>>> with redirect(leaf, "__setitem__", "a", lambda k, v: f"handled {k}={v}") as r:
+...     leaf["a"] = 1
+>>> r.result, dict(leaf)
+('handled a=1', {})
+```
+
+The redirect is pinned to the leaf key the operation computed (`dol.inner_most_key`), so a
+layer that writes some *other* key first (an index, an audit record) cannot have the
+operation’s semantics applied to it: that write is refused instead.
+
+The redirect is held in a `ContextVar`, so it is invisible to other threads and tasks, and
+it only applies to the leaf object it names. The flip side: a layer that performs the write
+in another thread, or later (a write-behind buffer), escapes it, and that write happens as
+the leaf’s ordinary upsert or delete.
+
+### Module Attributes
+
+| [`WRITE_METHODS`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.WRITE_METHODS)   | while one is pending on a leaf, any of them called with anything but the expected method and key is refused.   |
+|------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+
+### Functions
+
+| [`claim`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.claim)(leaf, method, key)             | The handler redirecting `leaf.<method>(key, ...)` right now, or `None`.   |
+|---------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| [`redirect`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.redirect)(leaf, method, key, handler) | Within the block, the call `leaf.<method>(key, ...)` goes to `handler`.   |
+
+### Classes
+
+| [`Redirect`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.Redirect)(leaf, method, key, handler[, ...])   | One pending redirect of `leaf.<method>(key, ...)` to `handler`.   |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+
+### Exceptions
+
+| [`RedirectError`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.RedirectError)   | A wrapping layer did not turn one mapping write into exactly one leaf write.   |
+|------------------------------------------------------------------|--------------------------------------------------------------------------------|
+
+### *class* cosmodol.routing.Redirect(leaf, method, key, handler, claimed=False, result=None, error=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One pending redirect of `leaf.<method>(key, ...)` to `handler`.
+
+After the block, `claimed` says whether the write reached the leaf, `result` is
+what the handler returned, and `error` what it raised (re-raised by the caller
+even if a layer swallowed it).
+
+### *exception* cosmodol.routing.RedirectError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A wrapping layer did not turn one mapping write into exactly one leaf write.
+
+### cosmodol.routing.WRITE_METHODS *= ('_\_setitem_\_', '_\_delitem_\_')*
+
+while one is pending on a leaf, any of them called
+with anything but the expected method and key is refused.
+
+* **Type:**
+  The leaf methods a redirect guards
+
+### cosmodol.routing.claim(leaf, method, key)
+
+The handler redirecting `leaf.<method>(key, ...)` right now, or `None`.
+
+Called by a leaf at the top of each of its `WRITE_METHODS`. The returned callable
+runs the handler and records its result or error.
+
+* **Return type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)]
+
+### cosmodol.routing.redirect(leaf, method, key, handler)
+
+Within the block, the call `leaf.<method>(key, ...)` goes to `handler`.
+
+Any other write call on `leaf` within the block (another method, another key, or
+the same call a second time) raises `RedirectError` before touching anything: one
+mapping write was expected to reach the leaf once, as `key`.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/typing.html#typing.Iterator)[[`Redirect`](_autosummary/cosmodol.routing.html.md#cosmodol.routing.Redirect)]
 
 
 # _autosummary/cosmodol.stores.html.md
@@ -1399,18 +1543,20 @@ Mapping of container name → `ContainerProxy` (or store-wrapped form).
 
 # About this build
 
-This documentation was built on **2026-10-13 04:45 UTC** from commit <a href="https://github.com/i2mint/cosmodol/commit/d0072cbdcce76638eec504ae6174eddfa3d51c3c"><code>d0072cb</code></a> on branch <code>master</code>, for **cosmodol 0.0.6** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-13 08:50 UTC** from commit <a href="https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae"><code>a6aa9dd</code></a> on branch <code>master</code>, for **cosmodol 0.0.7** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.7) is ahead of the latest release on PyPI (0.0.6): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                        |
 |---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/i2mint/cosmodol/commit/d0072cbdcce76638eec504ae6174eddfa3d51c3c"><code>d0072cbdcce76638eec504ae6174eddfa3d51c3c</code></a> |
+| Commit              | <a href="https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae"><code>a6aa9dd80680ec97cfa264a063454c59534f04ae</code></a> |
 | Branch              | <code>master</code>                                                                                                                                    |
-| Tags at this commit | <code>0.0.6</code>                                                                                                                                     |
+| Tags at this commit | <code>0.0.7</code>                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                  |
 | Remote              | <code>https://github.com/i2mint/cosmodol</code>                                                                                                        |
 
@@ -1419,15 +1565,15 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>i2mint/cosmodol</code>                                                               |
-| Run          | <a href="https://github.com/i2mint/cosmodol/actions/runs/38347818512">38347818512</a>      |
+| Run          | <a href="https://github.com/i2mint/cosmodol/actions/runs/38371868873">38371868873</a>      |
 | Ref          | <code>refs/heads/master</code>                                                             |
-| Event commit | <code>3c8129b22fb5dfcf9c287f3b9e9a48c97bca5b85</code> (in the history of the built commit) |
+| Event commit | <code>a3f5fa85c035df5950133dd8992fd603770acbad</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.13  |
+| epythet  | 0.2.15  |
 | Sphinx   | 9.1.0   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
@@ -1446,14 +1592,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/cosmodol/0.0.6/">0.0.6</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/cosmodol/0.0.6/">0.0.6</a>, older than the documented version (0.0.7).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/cosmodol && cd cosmodol
-git checkout d0072cbdcce76638eec504ae6174eddfa3d51c3c
-pip install "epythet==0.2.13"
+git checkout a6aa9dd80680ec97cfa264a063454c59534f04ae
+pip install "epythet==0.2.15"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

@@ -43,7 +43,7 @@ If your Cosmos account was provisioned with the **MongoDB API**, use `pymongo` +
 | [`validate_cosmos_id`](#cosmodol.validate_cosmos_id)(k)                             | Raise `ValueError` if `k` is not a valid Cosmos item `id`.                      |
 | [`add_container`](#cosmodol.add_container)(db_store, name, \*[, ...])          | Create a container named `name` (in the caller's key space) in `db_store`.      |
 | [`add_database`](#cosmodol.add_database)(account_store, name, \*[, ...])      | Create database `name` (in the caller's key space).                             |
-| [`batch_items`](#cosmodol.batch_items)(store, operations)                    | Transactional batch within the store's partition, in the caller's key space.    |
+| [`batch_items`](#cosmodol.batch_items)(store, operations, \*[, ...])         | Transactional batch within the store's partition, in the caller's key space.    |
 | [`delete_container`](#cosmodol.delete_container)(db_store, name, \*[, force])     | Drop container `name` (in the caller's key space); `force` empties it first.    |
 | [`delete_database`](#cosmodol.delete_database)(account_store, name, \*[, force]) | Drop database `name` (in the caller's key space); `force` drops its containers. |
 | [`partition`](#cosmodol.partition)(store, pk_value, \*[, wrap])            | Narrow a `CosmosPartitionedItems` to one partition; zero round-trips.           |
@@ -284,6 +284,10 @@ Alias for field number 0
 
 Create a container named `name` (in the caller’s key space) in `db_store`.
 
+Goes through `db_store[name] = <the settings>`, so every layer maps, scopes or
+refuses the name as usual; the leaf creates the container from the arguments given
+here (the value a layer passes down is ignored).
+
 * **Parameters:**
   * **db_store** – A `CosmosDatabase`, or a `dol` wrapper around one.
   * **name** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Container name, as `db_store[name]` would take it.
@@ -303,6 +307,7 @@ Create a container named `name` (in the caller’s key space) in `db_store`.
 
 Create database `name` (in the caller’s key space).
 
+Goes through `account_store[name] = <the settings>` (see `add_container`).
 Returns the leaf’s value for it (its `database_factory` output, a
 `CosmosDatabase` by default), not `account_store[name]`: a wrapper that does not
 expose the new name would otherwise raise after the database was created.
@@ -321,7 +326,7 @@ Transactional batch within one logical partition.
 * **Returns:**
   List of per-op result dicts as returned by the SDK.
 
-### cosmodol.batch_items(store, operations)
+### cosmodol.batch_items(store, operations, , unguarded_patch=False)
 
 Transactional batch within the store’s partition, in the caller’s key space.
 
@@ -333,11 +338,15 @@ such as `{"if_match_etag": etag}`:
 [("upsert", "a", {"v": 1}), ("replace", "b", {"v": 2}), ("delete", "c")]
 ```
 
-Keys (and values, except `patch` operation lists) are mapped down to the leaf exactly
-as `replace_item` maps them, and bodies get the leaf’s usual `id` /
-partition-key injection. On a wrapped store, every key a `read`, `replace`,
-`patch` or `delete` targets must be in the store (one point read each), unless an
-earlier `create`/`upsert` of the same batch makes it. The SDK’s raw
+Each `create`/`upsert`/`replace` is collected through `store[k] = v` and each
+`delete` through `del store[k]`, so every layer maps, checks or refuses it as
+usual; nothing is sent until all operations are collected, then they commit as one
+transaction. Bodies get the leaf’s usual `id` / partition-key injection. On a
+wrapped store, every key a `read`, `replace`, `patch` or `delete` targets must
+be in the store (one point read each), unless an earlier `create`/`upsert` of the
+same batch makes it. `read` and `patch` keys are mapped with each layer’s
+`_id_of_key`; `patch` operations are refused on a wrapped or subclassed store
+unless `unguarded_patch=True` (no layer’s write logic can run for a patch). The SDK’s raw
 `(op, args, kwargs)` triples are not accepted here, because the ids inside them are
 opaque to any key mapping; use `cosmodol.batch(container, triples, partition_key)`.
 
@@ -381,7 +390,8 @@ Drop container `name` (in the caller’s key space); `force` empties it first.
 
 Without `force` this is `del db_store[name]`, which refuses a non-empty container.
 With `force=True` every item is deleted, one point delete each, and then the
-container is dropped. Not recoverable without a Cosmos backup.
+container is dropped, through `del db_store[name]` so every layer maps, scopes or
+refuses it as usual. Not recoverable without a Cosmos backup.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -478,8 +488,9 @@ Unlike `store[k] = v` (an upsert), this fails with `ItemNotFoundError` if the it
 does not exist, and with a precondition error if `etag` no longer matches.
 
 * **Parameters:**
-  * **store** – A `CosmosItems`, or any `dol` wrapper around one. `k` and `v` are in
-    the *caller’s* key and value space; they are mapped down to the leaf.
+  * **store** – A `CosmosItems`, or any `dol` wrapper around one. The write goes through
+    `store[k] = v`, so every layer maps, checks or refuses it as usual; only the
+    leaf’s upsert becomes a replace.
   * **k** – The key, as `store[k]` would take it.
   * **v** – The value, as `store[k] = v` would take it.
   * **etag** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – If given, only replace when the stored item’s `_etag` still equals it.
@@ -552,6 +563,7 @@ the SDK. We fail loudly at write time. See `misc/docs/cosmos_db_reference.md`
 | [`errors`](cosmodol.errors.html.md#module-cosmodol.errors)         | Custom exceptions and error-translation decorator for cosmodol.                      |
 | [`ops`](cosmodol.ops.html.md#module-cosmodol.ops)               | Key-taking operations, as free functions over the caller's (possibly wrapped) store. |
 | [`recipes`](cosmodol.recipes.html.md#module-cosmodol.recipes)       | Convenience wrappers and factories for cosmodol.                                     |
+| [`routing`](cosmodol.routing.html.md#module-cosmodol.routing)       | Route an operation through a wrapped store's own `__setitem__`/`__delitem__`.        |
 | [`stores`](cosmodol.stores.html.md#module-cosmodol.stores)         | Mapping stores over a Cosmos DB container.                                           |
 | [`testing`](cosmodol.testing.html.md#module-cosmodol.testing)       | Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.        |
 | [`trees`](cosmodol.trees.html.md#module-cosmodol.trees)           | Tree-shaped stores: mapping-of-databases and mapping-of-containers.                  |

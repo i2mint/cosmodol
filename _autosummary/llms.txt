@@ -11,6 +11,7 @@
 - [cosmodol.errors](cosmodol.errors.html.md): Custom exceptions and error-translation decorator for cosmodol.
 - [cosmodol.ops](cosmodol.ops.html.md): Key-taking operations, as free functions over the caller’s (possibly wrapped) store.
 - [cosmodol.recipes](cosmodol.recipes.html.md): Convenience wrappers and factories for cosmodol.
+- [cosmodol.routing](cosmodol.routing.html.md): Route an operation through a wrapped store’s own &#96;&#95;&#95;setitem&#95;&#95;&#96;/&#96;&#95;&#95;delitem&#95;&#95;&#96;.
 - [cosmodol.stores](cosmodol.stores.html.md): Mapping stores over a Cosmos DB container.
 - [cosmodol.testing](cosmodol.testing.html.md): Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.
 - [cosmodol.trees](cosmodol.trees.html.md): Tree-shaped stores: mapping-of-databases and mapping-of-containers.

@@ -209,6 +209,7 @@
 <li class="toctree-l3"><a class="reference internal" href="cosmodol.errors.html">cosmodol.errors</a></li>
 <li class="toctree-l3 current current-page"><a class="current reference internal" href="#">cosmodol.ops</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cosmodol.recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cosmodol.routing.html">cosmodol.routing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cosmodol.stores.html">cosmodol.stores</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cosmodol.testing.html">cosmodol.testing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cosmodol.trees.html">cosmodol.trees</a></li>
@@ -280,26 +281,42 @@ itself, so it can resolve the key through every wrapping layer before touching C
 <p>The same design is s3dol’s ADR-0011 (keyed capabilities leave the store’s method surface;
 destructive ones become free functions). The removed methods now raise an
 <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> that names their replacement here.</p>
-<p>What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):</p>
+<p>How a function honours the wrapper (i2mint/cosmodol#3): every write goes through the
+caller’s store itself. A function performs the plain mapping write (<code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code> or
+<code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">store[k]</span></code>) on the outer store, after telling the cosmodol leaf, through
+<code class="docutils literal notranslate"><span class="pre">cosmodol.routing</span></code>, how to execute the one write that reaches it (a conditional replace,
+a batch entry, a cascade, a create). So each layer runs exactly as it does for that
+mapping write:</p>
 <ul class="simple">
-<li><p><strong>Key mapping</strong> — honoured. Keys are resolved with <code class="docutils literal notranslate"><span class="pre">dol.inner_most_key</span></code>, i.e. each
-wrapping layer’s <code class="docutils literal notranslate"><span class="pre">_id_of_key</span></code> (<code class="docutils literal notranslate"><span class="pre">wrap_kvs</span></code>, <code class="docutils literal notranslate"><span class="pre">KeyCodecs</span></code>, <code class="docutils literal notranslate"><span class="pre">Pipe</span></code>, class- and
-instance-wraps alike). A hand-rolled <code class="docutils literal notranslate"><span class="pre">__getattr__</span></code> passthrough layer can make it
-apply a transform twice.</p></li>
-<li><p><strong>Scope</strong> — honoured for operations on <em>existing</em> resources. On a wrapped store,
-<code class="docutils literal notranslate"><span class="pre">replace_item</span></code>, <code class="docutils literal notranslate"><span class="pre">batch_items</span></code>’s read/replace/patch/delete, and the forced
-<code class="docutils literal notranslate"><span class="pre">delete_container</span></code> / <code class="docutils literal notranslate"><span class="pre">delete_database</span></code> first check <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">in</span> <span class="pre">store</span></code> through the
-outer store, so a <code class="docutils literal notranslate"><span class="pre">filt_iter</span></code> scope (or any wrapper whose <code class="docutils literal notranslate"><span class="pre">__contains__</span></code> says no)
-stops them. That is one extra point read per key. Operations that <em>create</em> (batch
-<code class="docutils literal notranslate"><span class="pre">create</span></code>/<code class="docutils literal notranslate"><span class="pre">upsert</span></code>, <code class="docutils literal notranslate"><span class="pre">add_container</span></code>, <code class="docutils literal notranslate"><span class="pre">add_database</span></code>) cannot ask a filter, since
-the key does not exist yet: they honour the key mapping only.</p></li>
-<li><p><strong>Values</strong> — <code class="docutils literal notranslate"><span class="pre">replace_item</span></code> and <code class="docutils literal notranslate"><span class="pre">batch_items</span></code> pass values through each layer’s
-<code class="docutils literal notranslate"><span class="pre">_data_of_obj</span></code> (what <code class="docutils literal notranslate"><span class="pre">wrap_kvs(data_of_obj=...)</span></code> and <code class="docutils literal notranslate"><span class="pre">ValueCodecs</span></code> install). A
-key-aware <code class="docutils literal notranslate"><span class="pre">preset=</span></code> write hook is <strong>not</strong> followed (it only runs inside
-<code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>), and returned documents are in stored (leaf) form.</p></li>
-<li><p><strong>Guards and caches</strong> — not seen. A layer that refuses writes in its own
-<code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>/<code class="docutils literal notranslate"><span class="pre">__delitem__</span></code>, or caches values, is bypassed by any function,
-exactly as by the old methods. Pass such a store only if you mean to bypass it.</p></li>
+<li><p><strong>Key and value mapping</strong>, <code class="docutils literal notranslate"><span class="pre">preset=</span></code> hooks, <code class="docutils literal notranslate"><span class="pre">ValueCodecs</span></code>: applied by the layers
+themselves, class- and instance-wraps alike.</p></li>
+<li><p><strong>Write guards</strong>: a layer whose <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>/<code class="docutils literal notranslate"><span class="pre">__delitem__</span></code> refuses (a read-only
+wrapper, <code class="docutils literal notranslate"><span class="pre">dol.disable_setitem</span></code>) refuses the operation too.</p></li>
+<li><p><strong>Scope</strong>: a <code class="docutils literal notranslate"><span class="pre">filt_iter</span></code> scope refuses out-of-scope keys in its <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code> /
+<code class="docutils literal notranslate"><span class="pre">__delitem__</span></code>, now including keys an operation <em>creates</em> (batch <code class="docutils literal notranslate"><span class="pre">create</span></code>/<code class="docutils literal notranslate"><span class="pre">upsert</span></code>,
+<code class="docutils literal notranslate"><span class="pre">add_container</span></code>, <code class="docutils literal notranslate"><span class="pre">add_database</span></code>). Operations on <em>existing</em> resources also check
+<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">in</span> <span class="pre">store</span></code> through the outer store first (one point read), for wrappers that scope
+only by <code class="docutils literal notranslate"><span class="pre">__contains__</span></code>.</p></li>
+<li><p><strong>Write-through caches</strong> see the value they would see for <code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code>. A cache
+that only fills on reads (<code class="docutils literal notranslate"><span class="pre">dol.cache_vals</span></code>) is stale after any write, mapping or not.</p></li>
+<li><p><strong>A layer that writes another key first</strong> (an index, an audit record), **writes twice,
+or swallows the write** makes the function raise <code class="docutils literal notranslate"><span class="pre">cosmodol.routing.RedirectError</span></code>;
+the leaf refuses any write but the expected one, before acting. An error a layer
+catches is re-raised to the caller.</p></li>
+</ul>
+<p>What remains outside a function’s reach, stated rather than hidden (s3dol ADR-0011 D3a):</p>
+<ul class="simple">
+<li><p>A layer that performs the write in another thread or later (a write-behind buffer)
+escapes the redirect: that write is the leaf’s ordinary upsert or delete, without the
+operation’s semantics (no ETag check, outside a batch’s transaction). The function
+raises <code class="docutils literal notranslate"><span class="pre">RedirectError</span></code>, but cannot undo it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_items</span></code> collects its writes through the layers first and commits them as one
+transaction afterwards: a layer that acts after the inner write returns (a write-through
+cache, an audit log) has acted even if the transaction then fails.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_items</span></code>’s <code class="docutils literal notranslate"><span class="pre">patch</span></code> operation has no mapping-write equivalent, so no layer’s
+write logic can run for it; on a wrapped (or subclassed) store it is refused unless
+<code class="docutils literal notranslate"><span class="pre">unguarded_patch=True</span></code>. Its key is still mapped and scope-checked.</p></li>
+<li><p>Returned documents (<code class="docutils literal notranslate"><span class="pre">replace_item</span></code>, batch results) are in stored (leaf) form.</p></li>
 </ul>
 <p class="rubric">Module Attributes</p>
 <div class="table-wrapper autosummary longtable docutils container">
@@ -318,7 +335,7 @@ exactly as by the old methods. Pass such a store only if you mean to bypass it.<
 <tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.ops.replace_item" title="cosmodol.ops.replace_item"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_item</span></code></a>(store, k, v, *[, etag])</p></td>
 <td><p>Full replace of the existing item at key <code class="docutils literal notranslate"><span class="pre">k</span></code>, optionally ETag-conditional.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.ops.batch_items" title="cosmodol.ops.batch_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">batch_items</span></code></a>(store, operations)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#cosmodol.ops.batch_items" title="cosmodol.ops.batch_items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">batch_items</span></code></a>(store, operations, *[, ...])</p></td>
 <td><p>Transactional batch within the store's partition, in the caller's key space.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#cosmodol.ops.partition" title="cosmodol.ops.partition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">partition</span></code></a>(store, pk_value, *[, wrap])</p></td>
@@ -349,6 +366,9 @@ exactly as by the old methods. Pass such a store only if you mean to bypass it.<
 <dt class="sig sig-object py" id="cosmodol.ops.add_container">
 <span class="sig-prename descclassname"><span class="pre">cosmodol.ops.</span></span><span class="sig-name descname"><span class="pre">add_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">partition_key_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">throughput</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexing_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_key_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conflict_resolution_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#add_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ops.add_container" title="Link to this definition">¶</a></dt>
 <dd><p>Create a container named <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space) in <code class="docutils literal notranslate"><span class="pre">db_store</span></code>.</p>
+<p>Goes through <code class="docutils literal notranslate"><span class="pre">db_store[name]</span> <span class="pre">=</span> <span class="pre">&lt;the</span> <span class="pre">settings&gt;</span></code>, so every layer maps, scopes or
+refuses the name as usual; the leaf creates the container from the arguments given
+here (the value a layer passes down is ignored).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -375,7 +395,8 @@ shared throughput if any, otherwise the account default.</p></li>
 <dt class="sig sig-object py" id="cosmodol.ops.add_database">
 <span class="sig-prename descclassname"><span class="pre">cosmodol.ops.</span></span><span class="sig-name descname"><span class="pre">add_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">account_store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">throughput</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#add_database"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ops.add_database" title="Link to this definition">¶</a></dt>
 <dd><p>Create database <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space).</p>
-<p>Returns the leaf’s value for it (its <code class="docutils literal notranslate"><span class="pre">database_factory</span></code> output, a
+<p>Goes through <code class="docutils literal notranslate"><span class="pre">account_store[name]</span> <span class="pre">=</span> <span class="pre">&lt;the</span> <span class="pre">settings&gt;</span></code> (see <code class="docutils literal notranslate"><span class="pre">add_container</span></code>).
+Returns the leaf’s value for it (its <code class="docutils literal notranslate"><span class="pre">database_factory</span></code> output, a
 <code class="docutils literal notranslate"><span class="pre">CosmosDatabase</span></code> by default), not <code class="docutils literal notranslate"><span class="pre">account_store[name]</span></code>: a wrapper that does not
 expose the new name would otherwise raise after the database was created.</p>
 <dl class="field-list simple">
@@ -384,7 +405,7 @@ expose the new name would otherwise raise after the database was created.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cosmodol.ops.batch_items">
-<span class="sig-prename descclassname"><span class="pre">cosmodol.ops.</span></span><span class="sig-name descname"><span class="pre">batch_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#batch_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ops.batch_items" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">cosmodol.ops.</span></span><span class="sig-name descname"><span class="pre">batch_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">unguarded_patch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmodol/ops.html#batch_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cosmodol.ops.batch_items" title="Link to this definition">¶</a></dt>
 <dd><p>Transactional batch within the store’s partition, in the caller’s key space.</p>
 <p>Each operation is <code class="docutils literal notranslate"><span class="pre">(op,</span> <span class="pre">key)</span></code> or <code class="docutils literal notranslate"><span class="pre">(op,</span> <span class="pre">key,</span> <span class="pre">value)</span></code> (<code class="docutils literal notranslate"><span class="pre">op</span></code> one of
 <code class="docutils literal notranslate"><span class="pre">BATCH_OPS</span></code>), optionally followed by a dict of per-operation SDK keyword arguments
@@ -392,11 +413,15 @@ such as <code class="docutils literal notranslate"><span class="pre">{&quot;if_m
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">"upsert"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"v"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}),</span> <span class="p">(</span><span class="s2">"replace"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"v"</span><span class="p">:</span> <span class="mi">2</span><span class="p">}),</span> <span class="p">(</span><span class="s2">"delete"</span><span class="p">,</span> <span class="s2">"c"</span><span class="p">)]</span>
 </pre></div>
 </div>
-<p>Keys (and values, except <code class="docutils literal notranslate"><span class="pre">patch</span></code> operation lists) are mapped down to the leaf exactly
-as <code class="docutils literal notranslate"><span class="pre">replace_item</span></code> maps them, and bodies get the leaf’s usual <code class="docutils literal notranslate"><span class="pre">id</span></code> /
-partition-key injection. On a wrapped store, every key a <code class="docutils literal notranslate"><span class="pre">read</span></code>, <code class="docutils literal notranslate"><span class="pre">replace</span></code>,
-<code class="docutils literal notranslate"><span class="pre">patch</span></code> or <code class="docutils literal notranslate"><span class="pre">delete</span></code> targets must be in the store (one point read each), unless an
-earlier <code class="docutils literal notranslate"><span class="pre">create</span></code>/<code class="docutils literal notranslate"><span class="pre">upsert</span></code> of the same batch makes it. The SDK’s raw
+<p>Each <code class="docutils literal notranslate"><span class="pre">create</span></code>/<code class="docutils literal notranslate"><span class="pre">upsert</span></code>/<code class="docutils literal notranslate"><span class="pre">replace</span></code> is collected through <code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code> and each
+<code class="docutils literal notranslate"><span class="pre">delete</span></code> through <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">store[k]</span></code>, so every layer maps, checks or refuses it as
+usual; nothing is sent until all operations are collected, then they commit as one
+transaction. Bodies get the leaf’s usual <code class="docutils literal notranslate"><span class="pre">id</span></code> / partition-key injection. On a
+wrapped store, every key a <code class="docutils literal notranslate"><span class="pre">read</span></code>, <code class="docutils literal notranslate"><span class="pre">replace</span></code>, <code class="docutils literal notranslate"><span class="pre">patch</span></code> or <code class="docutils literal notranslate"><span class="pre">delete</span></code> targets must
+be in the store (one point read each), unless an earlier <code class="docutils literal notranslate"><span class="pre">create</span></code>/<code class="docutils literal notranslate"><span class="pre">upsert</span></code> of the
+same batch makes it. <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">patch</span></code> keys are mapped with each layer’s
+<code class="docutils literal notranslate"><span class="pre">_id_of_key</span></code>; <code class="docutils literal notranslate"><span class="pre">patch</span></code> operations are refused on a wrapped or subclassed store
+unless <code class="docutils literal notranslate"><span class="pre">unguarded_patch=True</span></code> (no layer’s write logic can run for a patch). The SDK’s raw
 <code class="docutils literal notranslate"><span class="pre">(op,</span> <span class="pre">args,</span> <span class="pre">kwargs)</span></code> triples are not accepted here, because the ids inside them are
 opaque to any key mapping; use <code class="docutils literal notranslate"><span class="pre">cosmodol.batch(container,</span> <span class="pre">triples,</span> <span class="pre">partition_key)</span></code>.</p>
 <dl class="field-list simple">
@@ -412,7 +437,8 @@ opaque to any key mapping; use <code class="docutils literal notranslate"><span 
 <dd><p>Drop container <code class="docutils literal notranslate"><span class="pre">name</span></code> (in the caller’s key space); <code class="docutils literal notranslate"><span class="pre">force</span></code> empties it first.</p>
 <p>Without <code class="docutils literal notranslate"><span class="pre">force</span></code> this is <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">db_store[name]</span></code>, which refuses a non-empty container.
 With <code class="docutils literal notranslate"><span class="pre">force=True</span></code> every item is deleted, one point delete each, and then the
-container is dropped. Not recoverable without a Cosmos backup.</p>
+container is dropped, through <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">db_store[name]</span></code> so every layer maps, scopes or
+refuses it as usual. Not recoverable without a Cosmos backup.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
@@ -468,8 +494,9 @@ does not exist, and with a precondition error if <code class="docutils literal n
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>store</strong> – A <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>, or any <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper around one. <code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are in
-the <em>caller’s</em> key and value space; they are mapped down to the leaf.</p></li>
+<li><p><strong>store</strong> – A <code class="docutils literal notranslate"><span class="pre">CosmosItems</span></code>, or any <code class="docutils literal notranslate"><span class="pre">dol</span></code> wrapper around one. The write goes through
+<code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code>, so every layer maps, checks or refuses it as usual; only the
+leaf’s upsert becomes a replace.</p></li>
 <li><p><strong>k</strong> – The key, as <code class="docutils literal notranslate"><span class="pre">store[k]</span></code> would take it.</p></li>
 <li><p><strong>v</strong> – The value, as <code class="docutils literal notranslate"><span class="pre">store[k]</span> <span class="pre">=</span> <span class="pre">v</span></code> would take it.</p></li>
 <li><p><strong>etag</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – If given, only replace when the stored item’s <code class="docutils literal notranslate"><span class="pre">_etag</span></code> still equals it.</p></li>
@@ -558,7 +585,7 @@ leaf strips them).</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=1d1a88ea"></script>
+</div><script src="../_static/documentation_options.js?v=b45afc8c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

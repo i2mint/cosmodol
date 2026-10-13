@@ -63,6 +63,7 @@
    errors
    ops
    recipes
+   routing
    stores
    testing
    trees

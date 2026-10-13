@@ -206,6 +206,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.errors.html">cosmodol.errors</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.ops.html">cosmodol.ops</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.routing.html">cosmodol.routing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.stores.html">cosmodol.stores</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.testing.html">cosmodol.testing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.trees.html">cosmodol.trees</a></li>
@@ -272,26 +273,42 @@
 <span class="sd">destructive ones become free functions). The removed methods now raise an</span>
 <span class="sd">``AttributeError`` that names their replacement here.</span>
 
-<span class="sd">What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):</span>
+<span class="sd">How a function honours the wrapper (i2mint/cosmodol#3): every write goes through the</span>
+<span class="sd">caller's store itself. A function performs the plain mapping write (``store[k] = v`` or</span>
+<span class="sd">``del store[k]``) on the outer store, after telling the cosmodol leaf, through</span>
+<span class="sd">``cosmodol.routing``, how to execute the one write that reaches it (a conditional replace,</span>
+<span class="sd">a batch entry, a cascade, a create). So each layer runs exactly as it does for that</span>
+<span class="sd">mapping write:</span>
 
-<span class="sd">- **Key mapping** — honoured. Keys are resolved with ``dol.inner_most_key``, i.e. each</span>
-<span class="sd">  wrapping layer's ``_id_of_key`` (``wrap_kvs``, ``KeyCodecs``, ``Pipe``, class- and</span>
-<span class="sd">  instance-wraps alike). A hand-rolled ``__getattr__`` passthrough layer can make it</span>
-<span class="sd">  apply a transform twice.</span>
-<span class="sd">- **Scope** — honoured for operations on *existing* resources. On a wrapped store,</span>
-<span class="sd">  ``replace_item``, ``batch_items``'s read/replace/patch/delete, and the forced</span>
-<span class="sd">  ``delete_container`` / ``delete_database`` first check ``k in store`` through the</span>
-<span class="sd">  outer store, so a ``filt_iter`` scope (or any wrapper whose ``__contains__`` says no)</span>
-<span class="sd">  stops them. That is one extra point read per key. Operations that *create* (batch</span>
-<span class="sd">  ``create``/``upsert``, ``add_container``, ``add_database``) cannot ask a filter, since</span>
-<span class="sd">  the key does not exist yet: they honour the key mapping only.</span>
-<span class="sd">- **Values** — ``replace_item`` and ``batch_items`` pass values through each layer's</span>
-<span class="sd">  ``_data_of_obj`` (what ``wrap_kvs(data_of_obj=...)`` and ``ValueCodecs`` install). A</span>
-<span class="sd">  key-aware ``preset=`` write hook is **not** followed (it only runs inside</span>
-<span class="sd">  ``__setitem__``), and returned documents are in stored (leaf) form.</span>
-<span class="sd">- **Guards and caches** — not seen. A layer that refuses writes in its own</span>
-<span class="sd">  ``__setitem__``/``__delitem__``, or caches values, is bypassed by any function,</span>
-<span class="sd">  exactly as by the old methods. Pass such a store only if you mean to bypass it.</span>
+<span class="sd">- **Key and value mapping**, ``preset=`` hooks, ``ValueCodecs``: applied by the layers</span>
+<span class="sd">  themselves, class- and instance-wraps alike.</span>
+<span class="sd">- **Write guards**: a layer whose ``__setitem__``/``__delitem__`` refuses (a read-only</span>
+<span class="sd">  wrapper, ``dol.disable_setitem``) refuses the operation too.</span>
+<span class="sd">- **Scope**: a ``filt_iter`` scope refuses out-of-scope keys in its ``__setitem__`` /</span>
+<span class="sd">  ``__delitem__``, now including keys an operation *creates* (batch ``create``/``upsert``,</span>
+<span class="sd">  ``add_container``, ``add_database``). Operations on *existing* resources also check</span>
+<span class="sd">  ``k in store`` through the outer store first (one point read), for wrappers that scope</span>
+<span class="sd">  only by ``__contains__``.</span>
+<span class="sd">- **Write-through caches** see the value they would see for ``store[k] = v``. A cache</span>
+<span class="sd">  that only fills on reads (``dol.cache_vals``) is stale after any write, mapping or not.</span>
+<span class="sd">- **A layer that writes another key first** (an index, an audit record), **writes twice,</span>
+<span class="sd">  or swallows the write** makes the function raise ``cosmodol.routing.RedirectError``;</span>
+<span class="sd">  the leaf refuses any write but the expected one, before acting. An error a layer</span>
+<span class="sd">  catches is re-raised to the caller.</span>
+
+<span class="sd">What remains outside a function's reach, stated rather than hidden (s3dol ADR-0011 D3a):</span>
+
+<span class="sd">- A layer that performs the write in another thread or later (a write-behind buffer)</span>
+<span class="sd">  escapes the redirect: that write is the leaf's ordinary upsert or delete, without the</span>
+<span class="sd">  operation's semantics (no ETag check, outside a batch's transaction). The function</span>
+<span class="sd">  raises ``RedirectError``, but cannot undo it.</span>
+<span class="sd">- ``batch_items`` collects its writes through the layers first and commits them as one</span>
+<span class="sd">  transaction afterwards: a layer that acts after the inner write returns (a write-through</span>
+<span class="sd">  cache, an audit log) has acted even if the transaction then fails.</span>
+<span class="sd">- ``batch_items``'s ``patch`` operation has no mapping-write equivalent, so no layer's</span>
+<span class="sd">  write logic can run for it; on a wrapped (or subclassed) store it is refused unless</span>
+<span class="sd">  ``unguarded_patch=True``. Its key is still mapped and scope-checked.</span>
+<span class="sd">- Returned documents (``replace_item``, batch results) are in stored (leaf) form.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -303,9 +320,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">azure.cosmos</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartitionKey</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">azure.cosmos.partition_key</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonePartitionKeyValue</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">inner_most_key</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dol.dig</span><span class="w"> </span><span class="kn">import</span> <span class="n">inner_most</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">batch</span> <span class="k">as</span> <span class="n">_batch</span><span class="p">,</span> <span class="n">point_replace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.routing</span><span class="w"> </span><span class="kn">import</span> <span class="n">RedirectError</span><span class="p">,</span> <span class="n">redirect</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ContainerNotFoundError</span><span class="p">,</span>
     <span class="n">DatabaseNotFoundError</span><span class="p">,</span>
@@ -349,19 +366,48 @@
     <span class="k">return</span> <span class="n">inner_most_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_existing_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">not_found</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="ne">KeyError</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">"""``_leaf_key``, after checking ``k in store`` through every wrapping layer, so a</span>
-<span class="sd">    scope filter around the store is honoured. Unwrapped stores skip the round-trip</span>
-<span class="sd">    (the operation itself fails on a missing resource)."""</span>
-    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">leaf</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_require_member</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">not_found</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="ne">KeyError</span><span class="p">],</span> <span class="n">base</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Check ``k in store`` through every wrapping layer, so a scope that a wrapper (or</span>
+<span class="sd">    a subclass of ``base``) expresses only in ``__contains__`` is honoured. A plain</span>
+<span class="sd">    ``base`` instance skips the round-trip (the operation itself fails on a missing</span>
+<span class="sd">    resource)."""</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="n">leaf</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span><span class="o">.</span><span class="fm">__contains__</span> <span class="ow">is</span> <span class="n">base</span><span class="o">.</span><span class="fm">__contains__</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">not_found</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_leaf_value</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="n">leaf</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">v</span>
-    <span class="k">return</span> <span class="n">inner_most</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="s2">"_data_of_obj"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_routed</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">,</span> <span class="n">what</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``store[k] = v`` (or ``del store[k]`` when no ``v``) through every wrapping layer,</span>
+<span class="sd">    with the one resulting ``leaf.&lt;method&gt;`` call handed to ``handler`` (which receives the</span>
+<span class="sd">    leaf's arguments: ``(k, v)`` or ``(k,)``, fully mapped). Returns what it returned.</span>
+
+<span class="sd">    The redirect is pinned to ``k``'s leaf key, so a layer's write of any other key during</span>
+<span class="sd">    the operation is refused rather than given this operation's semantics."""</span>
+    <span class="k">with</span> <span class="n">redirect</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">handler</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+            <span class="n">store</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">store</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">claimed</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">RedirectError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">: the write of </span><span class="si">{</span><span class="n">k</span><span class="si">!r}</span><span class="s2"> did not reach the cosmodol store during the "</span>
+            <span class="s2">"operation. A wrapping layer swallowed it, or performs it elsewhere (another "</span>
+            <span class="s2">"thread, a write-behind buffer): then it may have been, or may later be, "</span>
+            <span class="s2">"performed as an ordinary upsert or delete, without this operation's checks."</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># a layer caught it; the caller must still see it</span>
+        <span class="k">raise</span> <span class="n">r</span><span class="o">.</span><span class="n">error</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">result</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_logic_above</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether anything between the caller and ``base``'s own write methods could act</span>
+<span class="sd">    on a write: a wrapping layer, or a subclass overriding ``__setitem__``/``__delitem__``."""</span>
+    <span class="k">return</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">leaf</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">leaf</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"__setitem__"</span><span class="p">,</span> <span class="s2">"__delitem__"</span><span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="c1"># ---------------------------------------------------------------------------</span>
@@ -378,8 +424,9 @@
 <span class="sd">    does not exist, and with a precondition error if ``etag`` no longer matches.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        store: A ``CosmosItems``, or any ``dol`` wrapper around one. ``k`` and ``v`` are in</span>
-<span class="sd">            the *caller's* key and value space; they are mapped down to the leaf.</span>
+<span class="sd">        store: A ``CosmosItems``, or any ``dol`` wrapper around one. The write goes through</span>
+<span class="sd">            ``store[k] = v``, so every layer maps, checks or refuses it as usual; only the</span>
+<span class="sd">            leaf's upsert becomes a replace.</span>
 <span class="sd">        k: The key, as ``store[k]`` would take it.</span>
 <span class="sd">        v: The value, as ``store[k] = v`` would take it.</span>
 <span class="sd">        etag: If given, only replace when the stored item's ``_etag`` still equals it.</span>
@@ -389,13 +436,17 @@
 <span class="sd">        leaf strips them).</span>
 <span class="sd">    """</span>
     <span class="n">leaf</span> <span class="o">=</span> <span class="n">_leaf_of</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s2">"replace_item"</span><span class="p">)</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">_existing_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">ItemNotFoundError</span><span class="p">)</span>
-    <span class="n">body</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">_leaf_value</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
-    <span class="n">item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_replace</span><span class="p">(</span>
-        <span class="n">leaf</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">,</span> <span class="n">etag</span><span class="o">=</span><span class="n">etag</span>
-    <span class="p">)</span>
-    <span class="n">leaf</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">"replace"</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_maybe_strip</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+    <span class="n">_require_member</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">ItemNotFoundError</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">replace</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf_v</span><span class="p">):</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf_v</span><span class="p">)</span>
+        <span class="n">item</span><span class="p">,</span> <span class="n">hdrs</span> <span class="o">=</span> <span class="n">point_replace</span><span class="p">(</span>
+            <span class="n">leaf</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">leaf_k</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">,</span> <span class="n">etag</span><span class="o">=</span><span class="n">etag</span>
+        <span class="p">)</span>
+        <span class="n">leaf</span><span class="o">.</span><span class="n">_observe</span><span class="p">(</span><span class="s2">"replace"</span><span class="p">,</span> <span class="n">hdrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_maybe_strip</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_routed</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">replace</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"replace_item"</span><span class="p">)</span></div>
 
 
 
@@ -412,7 +463,9 @@
 
 <div class="viewcode-block" id="batch_items">
 <a class="viewcode-back" href="../../_autosummary/cosmodol.ops.html#cosmodol.batch_items">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">batch_items</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">operations</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">batch_items</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">,</span> <span class="n">operations</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">unguarded_patch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Transactional batch within the store's partition, in the caller's key space.</span>
 
 <span class="sd">    Each operation is ``(op, key)`` or ``(op, key, value)`` (``op`` one of</span>
@@ -421,16 +474,29 @@
 
 <span class="sd">        [("upsert", "a", {"v": 1}), ("replace", "b", {"v": 2}), ("delete", "c")]</span>
 
-<span class="sd">    Keys (and values, except ``patch`` operation lists) are mapped down to the leaf exactly</span>
-<span class="sd">    as ``replace_item`` maps them, and bodies get the leaf's usual ``id`` /</span>
-<span class="sd">    partition-key injection. On a wrapped store, every key a ``read``, ``replace``,</span>
-<span class="sd">    ``patch`` or ``delete`` targets must be in the store (one point read each), unless an</span>
-<span class="sd">    earlier ``create``/``upsert`` of the same batch makes it. The SDK's raw</span>
+<span class="sd">    Each ``create``/``upsert``/``replace`` is collected through ``store[k] = v`` and each</span>
+<span class="sd">    ``delete`` through ``del store[k]``, so every layer maps, checks or refuses it as</span>
+<span class="sd">    usual; nothing is sent until all operations are collected, then they commit as one</span>
+<span class="sd">    transaction. Bodies get the leaf's usual ``id`` / partition-key injection. On a</span>
+<span class="sd">    wrapped store, every key a ``read``, ``replace``, ``patch`` or ``delete`` targets must</span>
+<span class="sd">    be in the store (one point read each), unless an earlier ``create``/``upsert`` of the</span>
+<span class="sd">    same batch makes it. ``read`` and ``patch`` keys are mapped with each layer's</span>
+<span class="sd">    ``_id_of_key``; ``patch`` operations are refused on a wrapped or subclassed store</span>
+<span class="sd">    unless ``unguarded_patch=True`` (no layer's write logic can run for a patch). The SDK's raw</span>
 <span class="sd">    ``(op, args, kwargs)`` triples are not accepted here, because the ids inside them are</span>
 <span class="sd">    opaque to any key mapping; use ``cosmodol.batch(container, triples, partition_key)``.</span>
 <span class="sd">    """</span>
     <span class="n">leaf</span> <span class="o">=</span> <span class="n">_leaf_of</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s2">"batch_items"</span><span class="p">)</span>
     <span class="n">triples</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">collect_write</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf_v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">leaf_v</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">collect_key</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">:</span>
+            <span class="n">validate_cosmos_id</span><span class="p">(</span><span class="n">leaf_k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">leaf_k</span>
+
     <span class="k">for</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">operations</span><span class="p">:</span>
         <span class="n">op</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">rest</span> <span class="o">=</span> <span class="n">operation</span>
         <span class="k">if</span> <span class="n">op</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BATCH_OPS</span><span class="p">:</span>
@@ -452,20 +518,31 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Batch op </span><span class="si">{</span><span class="n">op</span><span class="si">!r}</span><span class="s2"> takes </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">[, kwargs]; got </span><span class="si">{</span><span class="n">operation</span><span class="si">!r}</span><span class="s2">."</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">op</span> <span class="o">==</span> <span class="s2">"patch"</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">unguarded_patch</span>
+            <span class="ow">and</span> <span class="n">_write_logic_above</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">"batch_items refused a 'patch': this store is wrapped (or subclassed), "</span>
+                <span class="s2">"and no wrapping layer's write logic (guards, hooks, caches) can run for "</span>
+                <span class="s2">"a patch. Pass unguarded_patch=True to send it anyway."</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"create"</span><span class="p">,</span> <span class="s2">"upsert"</span><span class="p">):</span>
             <span class="n">created</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="n">_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">created</span><span class="p">:</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="n">_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="n">_existing_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">ItemNotFoundError</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">created</span><span class="p">:</span>
+            <span class="n">_require_member</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">ItemNotFoundError</span><span class="p">,</span> <span class="n">CosmosItems</span><span class="p">)</span>
+        <span class="n">what</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"batch_items </span><span class="si">{</span><span class="n">op</span><span class="si">!r}</span><span class="s2">"</span>
         <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"create"</span><span class="p">,</span> <span class="s2">"upsert"</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">):</span>
-            <span class="n">body</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">_prepare_body</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">_leaf_value</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">body</span><span class="p">,)</span> <span class="k">if</span> <span class="n">op</span> <span class="o">!=</span> <span class="s2">"replace"</span> <span class="k">else</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+            <span class="n">leaf_k</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">_routed</span><span class="p">(</span>
+                <span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">collect_write</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">what</span><span class="o">=</span><span class="n">what</span>
+            <span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">body</span><span class="p">,)</span> <span class="k">if</span> <span class="n">op</span> <span class="o">!=</span> <span class="s2">"replace"</span> <span class="k">else</span> <span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"delete"</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">_routed</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="s2">"__delitem__"</span><span class="p">,</span> <span class="n">collect_key</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="n">what</span><span class="p">),)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">strict_keys</span><span class="p">:</span>
-                <span class="n">validate_cosmos_id</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"patch"</span> <span class="k">else</span> <span class="p">(</span><span class="n">k</span><span class="p">,)</span>
+            <span class="n">leaf_k</span> <span class="o">=</span> <span class="n">collect_key</span><span class="p">(</span><span class="n">_leaf_key</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">leaf_k</span><span class="p">,</span> <span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"patch"</span> <span class="k">else</span> <span class="p">(</span><span class="n">leaf_k</span><span class="p">,)</span>
         <span class="n">triples</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">op</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">_batch</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">triples</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">partition_key_value</span><span class="p">)</span></div>
 
@@ -533,6 +610,10 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Create a container named ``name`` (in the caller's key space) in ``db_store``.</span>
 
+<span class="sd">    Goes through ``db_store[name] = &lt;the settings&gt;``, so every layer maps, scopes or</span>
+<span class="sd">    refuses the name as usual; the leaf creates the container from the arguments given</span>
+<span class="sd">    here (the value a layer passes down is ignored).</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        db_store: A ``CosmosDatabase``, or a ``dol`` wrapper around one.</span>
 <span class="sd">        name: Container name, as ``db_store[name]`` would take it.</span>
@@ -548,8 +629,7 @@
 <span class="sd">        The SDK's ``ContainerProxy``.</span>
 <span class="sd">    """</span>
     <span class="n">leaf</span> <span class="o">=</span> <span class="n">_leaf_of</span><span class="p">(</span><span class="n">db_store</span><span class="p">,</span> <span class="n">CosmosDatabase</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s2">"add_container"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">leaf</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
-        <span class="nb">id</span><span class="o">=</span><span class="n">_leaf_key</span><span class="p">(</span><span class="n">db_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">partition_key</span><span class="o">=</span><span class="n">PartitionKey</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">partition_key_path</span><span class="p">),</span>
         <span class="n">offer_throughput</span><span class="o">=</span><span class="n">throughput</span><span class="p">,</span>
         <span class="n">indexing_policy</span><span class="o">=</span><span class="n">indexing_policy</span><span class="p">,</span>
@@ -557,6 +637,13 @@
         <span class="n">unique_key_policy</span><span class="o">=</span><span class="n">unique_key_policy</span><span class="p">,</span>
         <span class="n">conflict_resolution_policy</span><span class="o">=</span><span class="n">conflict_resolution_policy</span><span class="p">,</span>
         <span class="o">**</span><span class="n">extra</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="n">leaf_name</span><span class="p">,</span> <span class="n">_settings</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">leaf</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">leaf_name</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_routed</span><span class="p">(</span>
+        <span class="n">db_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">create</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"add_container"</span>
     <span class="p">)</span></div>
 
 
@@ -581,28 +668,40 @@
 
 <span class="sd">    Without ``force`` this is ``del db_store[name]``, which refuses a non-empty container.</span>
 <span class="sd">    With ``force=True`` every item is deleted, one point delete each, and then the</span>
-<span class="sd">    container is dropped. Not recoverable without a Cosmos backup.</span>
+<span class="sd">    container is dropped, through ``del db_store[name]`` so every layer maps, scopes or</span>
+<span class="sd">    refuses it as usual. Not recoverable without a Cosmos backup.</span>
 <span class="sd">    """</span>
     <span class="n">leaf</span> <span class="o">=</span> <span class="n">_leaf_of</span><span class="p">(</span><span class="n">db_store</span><span class="p">,</span> <span class="n">CosmosDatabase</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s2">"delete_container"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">db_store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">return</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">_existing_leaf_key</span><span class="p">(</span><span class="n">db_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ContainerNotFoundError</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-        <span class="n">pk_expr</span> <span class="o">=</span> <span class="n">_partition_key_expr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">ContainerNotFoundError</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="n">select</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">"SELECT c.id FROM c"</span>
-        <span class="k">if</span> <span class="n">pk_expr</span> <span class="ow">is</span> <span class="kc">None</span>
-        <span class="k">else</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"SELECT c.id, </span><span class="si">{</span><span class="n">pk_expr</span><span class="si">}</span><span class="s2"> AS pk FROM c"</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">query_items</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">select</span><span class="p">,</span> <span class="n">enable_cross_partition_query</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="c1"># A projection omits an undefined value: the item has no partition-key property.</span>
-        <span class="n">pk</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"pk"</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"pk"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">NonePartitionKeyValue</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">delete_item</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">partition_key</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
-    <span class="n">leaf</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">delete_container</span><span class="p">(</span><span class="n">k</span><span class="p">)</span></div>
+    <span class="n">_require_member</span><span class="p">(</span><span class="n">db_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ContainerNotFoundError</span><span class="p">,</span> <span class="n">CosmosDatabase</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">cascade</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">pk_expr</span> <span class="o">=</span> <span class="n">_partition_key_expr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ContainerNotFoundError</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">select</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"SELECT c.id FROM c"</span>
+            <span class="k">if</span> <span class="n">pk_expr</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"SELECT c.id, </span><span class="si">{</span><span class="n">pk_expr</span><span class="si">}</span><span class="s2"> AS pk FROM c"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">query_items</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">select</span><span class="p">,</span> <span class="n">enable_cross_partition_query</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="c1"># A projection omits an undefined value: the item has no partition-key property.</span>
+            <span class="n">pk</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"pk"</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"pk"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">NonePartitionKeyValue</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">delete_item</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">partition_key</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+        <span class="n">leaf</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">delete_container</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="n">_routed</span><span class="p">(</span>
+        <span class="n">db_store</span><span class="p">,</span>
+        <span class="n">leaf</span><span class="p">,</span>
+        <span class="s2">"__delitem__"</span><span class="p">,</span>
+        <span class="n">cascade</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">what</span><span class="o">=</span><span class="s2">"delete_container(force=True)"</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 
@@ -613,13 +712,19 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Create database ``name`` (in the caller's key space).</span>
 
+<span class="sd">    Goes through ``account_store[name] = &lt;the settings&gt;`` (see ``add_container``).</span>
 <span class="sd">    Returns the leaf's value for it (its ``database_factory`` output, a</span>
 <span class="sd">    ``CosmosDatabase`` by default), not ``account_store[name]``: a wrapper that does not</span>
 <span class="sd">    expose the new name would otherwise raise after the database was created.</span>
 <span class="sd">    """</span>
     <span class="n">leaf</span> <span class="o">=</span> <span class="n">_leaf_of</span><span class="p">(</span><span class="n">account_store</span><span class="p">,</span> <span class="n">CosmosAccount</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="s2">"add_database"</span><span class="p">)</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">create_database</span><span class="p">(</span>
-        <span class="nb">id</span><span class="o">=</span><span class="n">_leaf_key</span><span class="p">(</span><span class="n">account_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="n">offer_throughput</span><span class="o">=</span><span class="n">throughput</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">offer_throughput</span><span class="o">=</span><span class="n">throughput</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="n">leaf_name</span><span class="p">,</span> <span class="n">_settings</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">leaf</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">create_database</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">leaf_name</span><span class="p">,</span> <span class="o">**</span><span class="n">settings</span><span class="p">)</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">_routed</span><span class="p">(</span>
+        <span class="n">account_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">create</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">"add_database"</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">leaf</span><span class="o">.</span><span class="n">database_factory</span><span class="p">(</span><span class="n">db</span><span class="p">)</span></div>
 
@@ -637,15 +742,26 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">account_store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">return</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">_existing_leaf_key</span><span class="p">(</span><span class="n">account_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">DatabaseNotFoundError</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">db</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_database_client</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">DatabaseNotFoundError</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">list_containers</span><span class="p">():</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">delete_container</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
-    <span class="n">leaf</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">delete_database</span><span class="p">(</span><span class="n">k</span><span class="p">)</span></div>
+    <span class="n">_require_member</span><span class="p">(</span><span class="n">account_store</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">DatabaseNotFoundError</span><span class="p">,</span> <span class="n">CosmosAccount</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">cascade</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_database_client</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DatabaseNotFoundError</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">list_containers</span><span class="p">():</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">delete_container</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+        <span class="n">leaf</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">delete_database</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="n">_routed</span><span class="p">(</span>
+        <span class="n">account_store</span><span class="p">,</span>
+        <span class="n">leaf</span><span class="p">,</span>
+        <span class="s2">"__delitem__"</span><span class="p">,</span>
+        <span class="n">cascade</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">what</span><span class="o">=</span><span class="s2">"delete_database(force=True)"</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 
@@ -687,7 +803,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=1d1a88ea"></script>
+</div><script src="../../_static/documentation_options.js?v=b45afc8c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

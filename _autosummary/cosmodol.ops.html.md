@@ -27,26 +27,42 @@ The same design is s3dol’s ADR-0011 (keyed capabilities leave the store’s me
 destructive ones become free functions). The removed methods now raise an
 `AttributeError` that names their replacement here.
 
-What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):
+How a function honours the wrapper (i2mint/cosmodol#3): every write goes through the
+caller’s store itself. A function performs the plain mapping write (`store[k] = v` or
+`del store[k]`) on the outer store, after telling the cosmodol leaf, through
+`cosmodol.routing`, how to execute the one write that reaches it (a conditional replace,
+a batch entry, a cascade, a create). So each layer runs exactly as it does for that
+mapping write:
 
-- **Key mapping** — honoured. Keys are resolved with `dol.inner_most_key`, i.e. each
-  wrapping layer’s `_id_of_key` (`wrap_kvs`, `KeyCodecs`, `Pipe`, class- and
-  instance-wraps alike). A hand-rolled `__getattr__` passthrough layer can make it
-  apply a transform twice.
-- **Scope** — honoured for operations on *existing* resources. On a wrapped store,
-  `replace_item`, `batch_items`’s read/replace/patch/delete, and the forced
-  `delete_container` / `delete_database` first check `k in store` through the
-  outer store, so a `filt_iter` scope (or any wrapper whose `__contains__` says no)
-  stops them. That is one extra point read per key. Operations that *create* (batch
-  `create`/`upsert`, `add_container`, `add_database`) cannot ask a filter, since
-  the key does not exist yet: they honour the key mapping only.
-- **Values** — `replace_item` and `batch_items` pass values through each layer’s
-  `_data_of_obj` (what `wrap_kvs(data_of_obj=...)` and `ValueCodecs` install). A
-  key-aware `preset=` write hook is **not** followed (it only runs inside
-  `__setitem__`), and returned documents are in stored (leaf) form.
-- **Guards and caches** — not seen. A layer that refuses writes in its own
-  `__setitem__`/`__delitem__`, or caches values, is bypassed by any function,
-  exactly as by the old methods. Pass such a store only if you mean to bypass it.
+- **Key and value mapping**, `preset=` hooks, `ValueCodecs`: applied by the layers
+  themselves, class- and instance-wraps alike.
+- **Write guards**: a layer whose `__setitem__`/`__delitem__` refuses (a read-only
+  wrapper, `dol.disable_setitem`) refuses the operation too.
+- **Scope**: a `filt_iter` scope refuses out-of-scope keys in its `__setitem__` /
+  `__delitem__`, now including keys an operation *creates* (batch `create`/`upsert`,
+  `add_container`, `add_database`). Operations on *existing* resources also check
+  `k in store` through the outer store first (one point read), for wrappers that scope
+  only by `__contains__`.
+- **Write-through caches** see the value they would see for `store[k] = v`. A cache
+  that only fills on reads (`dol.cache_vals`) is stale after any write, mapping or not.
+- **A layer that writes another key first** (an index, an audit record), \*\*writes twice,
+  or swallows the write\*\* makes the function raise `cosmodol.routing.RedirectError`;
+  the leaf refuses any write but the expected one, before acting. An error a layer
+  catches is re-raised to the caller.
+
+What remains outside a function’s reach, stated rather than hidden (s3dol ADR-0011 D3a):
+
+- A layer that performs the write in another thread or later (a write-behind buffer)
+  escapes the redirect: that write is the leaf’s ordinary upsert or delete, without the
+  operation’s semantics (no ETag check, outside a batch’s transaction). The function
+  raises `RedirectError`, but cannot undo it.
+- `batch_items` collects its writes through the layers first and commits them as one
+  transaction afterwards: a layer that acts after the inner write returns (a write-through
+  cache, an audit log) has acted even if the transaction then fails.
+- `batch_items`’s `patch` operation has no mapping-write equivalent, so no layer’s
+  write logic can run for it; on a wrapped (or subclassed) store it is refused unless
+  `unguarded_patch=True`. Its key is still mapped and scope-checked.
+- Returned documents (`replace_item`, batch results) are in stored (leaf) form.
 
 ### Module Attributes
 
@@ -57,7 +73,7 @@ What a function can and cannot honour, stated rather than hidden (ADR-0011 D3a):
 
 | [`replace_item`](#cosmodol.ops.replace_item)(store, k, v, \*[, etag])             | Full replace of the existing item at key `k`, optionally ETag-conditional.      |
 |----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`batch_items`](#cosmodol.ops.batch_items)(store, operations)                    | Transactional batch within the store's partition, in the caller's key space.    |
+| [`batch_items`](#cosmodol.ops.batch_items)(store, operations, \*[, ...])         | Transactional batch within the store's partition, in the caller's key space.    |
 | [`partition`](#cosmodol.ops.partition)(store, pk_value, \*[, wrap])            | Narrow a `CosmosPartitionedItems` to one partition; zero round-trips.           |
 | [`add_container`](#cosmodol.ops.add_container)(db_store, name, \*[, ...])          | Create a container named `name` (in the caller's key space) in `db_store`.      |
 | [`delete_container`](#cosmodol.ops.delete_container)(db_store, name, \*[, force])     | Drop container `name` (in the caller's key space); `force` empties it first.    |
@@ -71,6 +87,10 @@ Operations `batch_items` accepts, and whether each carries a value.
 ### cosmodol.ops.add_container(db_store, name, , partition_key_path='/id', throughput=None, indexing_policy=None, default_ttl=None, unique_key_policy=None, conflict_resolution_policy=None, \*\*extra)
 
 Create a container named `name` (in the caller’s key space) in `db_store`.
+
+Goes through `db_store[name] = <the settings>`, so every layer maps, scopes or
+refuses the name as usual; the leaf creates the container from the arguments given
+here (the value a layer passes down is ignored).
 
 * **Parameters:**
   * **db_store** – A `CosmosDatabase`, or a `dol` wrapper around one.
@@ -91,11 +111,12 @@ Create a container named `name` (in the caller’s key space) in `db_store`.
 
 Create database `name` (in the caller’s key space).
 
+Goes through `account_store[name] = <the settings>` (see `add_container`).
 Returns the leaf’s value for it (its `database_factory` output, a
 `CosmosDatabase` by default), not `account_store[name]`: a wrapper that does not
 expose the new name would otherwise raise after the database was created.
 
-### cosmodol.ops.batch_items(store, operations)
+### cosmodol.ops.batch_items(store, operations, , unguarded_patch=False)
 
 Transactional batch within the store’s partition, in the caller’s key space.
 
@@ -107,11 +128,15 @@ such as `{"if_match_etag": etag}`:
 [("upsert", "a", {"v": 1}), ("replace", "b", {"v": 2}), ("delete", "c")]
 ```
 
-Keys (and values, except `patch` operation lists) are mapped down to the leaf exactly
-as `replace_item` maps them, and bodies get the leaf’s usual `id` /
-partition-key injection. On a wrapped store, every key a `read`, `replace`,
-`patch` or `delete` targets must be in the store (one point read each), unless an
-earlier `create`/`upsert` of the same batch makes it. The SDK’s raw
+Each `create`/`upsert`/`replace` is collected through `store[k] = v` and each
+`delete` through `del store[k]`, so every layer maps, checks or refuses it as
+usual; nothing is sent until all operations are collected, then they commit as one
+transaction. Bodies get the leaf’s usual `id` / partition-key injection. On a
+wrapped store, every key a `read`, `replace`, `patch` or `delete` targets must
+be in the store (one point read each), unless an earlier `create`/`upsert` of the
+same batch makes it. `read` and `patch` keys are mapped with each layer’s
+`_id_of_key`; `patch` operations are refused on a wrapped or subclassed store
+unless `unguarded_patch=True` (no layer’s write logic can run for a patch). The SDK’s raw
 `(op, args, kwargs)` triples are not accepted here, because the ids inside them are
 opaque to any key mapping; use `cosmodol.batch(container, triples, partition_key)`.
 
@@ -124,7 +149,8 @@ Drop container `name` (in the caller’s key space); `force` empties it first.
 
 Without `force` this is `del db_store[name]`, which refuses a non-empty container.
 With `force=True` every item is deleted, one point delete each, and then the
-container is dropped. Not recoverable without a Cosmos backup.
+container is dropped, through `del db_store[name]` so every layer maps, scopes or
+refuses it as usual. Not recoverable without a Cosmos backup.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -169,8 +195,9 @@ Unlike `store[k] = v` (an upsert), this fails with `ItemNotFoundError` if the it
 does not exist, and with a precondition error if `etag` no longer matches.
 
 * **Parameters:**
-  * **store** – A `CosmosItems`, or any `dol` wrapper around one. `k` and `v` are in
-    the *caller’s* key and value space; they are mapped down to the leaf.
+  * **store** – A `CosmosItems`, or any `dol` wrapper around one. The write goes through
+    `store[k] = v`, so every layer maps, checks or refuses it as usual; only the
+    leaf’s upsert becomes a replace.
   * **k** – The key, as `store[k]` would take it.
   * **v** – The value, as `store[k] = v` would take it.
   * **etag** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – If given, only replace when the stored item’s `_etag` still equals it.

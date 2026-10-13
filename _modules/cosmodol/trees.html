@@ -206,6 +206,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.errors.html">cosmodol.errors</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.ops.html">cosmodol.ops</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.recipes.html">cosmodol.recipes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.routing.html">cosmodol.routing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.stores.html">cosmodol.stores</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.testing.html">cosmodol.testing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../_autosummary/cosmodol.trees.html">cosmodol.trees</a></li>
@@ -267,6 +268,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol</span><span class="w"> </span><span class="kn">import</span> <span class="n">KvReader</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.connection</span><span class="w"> </span><span class="kn">import</span> <span class="n">CosmosConnection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.routing</span><span class="w"> </span><span class="kn">import</span> <span class="n">claim</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cosmodol.errors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ContainerNotEmptyError</span><span class="p">,</span>
     <span class="n">ContainerNotFoundError</span><span class="p">,</span>
@@ -349,12 +351,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">store_factory</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">handler</span> <span class="o">:=</span> <span class="n">claim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>  <span class="c1"># cosmodol.add_container / add_database</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
             <span class="s2">"Container creation does not go through __setitem__ (too parameter-rich). "</span>
             <span class="s2">"Use `cosmodol.add_container(db_store, name, partition_key_path=..., ...)` instead."</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">handler</span> <span class="o">:=</span> <span class="n">claim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"__delitem__"</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>  <span class="c1"># a forced cosmodol.delete_container / delete_database</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="n">c</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -448,12 +454,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_factory</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">handler</span> <span class="o">:=</span> <span class="n">claim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"__setitem__"</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>  <span class="c1"># cosmodol.add_container / add_database</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
             <span class="s2">"Database creation does not go through __setitem__ (too parameter-rich). "</span>
             <span class="s2">"Use `cosmodol.add_database(account_store, name, throughput=...)` instead."</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">handler</span> <span class="o">:=</span> <span class="n">claim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"__delitem__"</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>  <span class="c1"># a forced cosmodol.delete_container / delete_database</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_database_client</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="n">db</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -516,7 +526,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=1d1a88ea"></script>
+</div><script src="../../_static/documentation_options.js?v=b45afc8c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>

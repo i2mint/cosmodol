@@ -13,11 +13,12 @@
 - [cosmodol.errors](_autosummary/cosmodol.errors.html.md): Custom exceptions and error-translation decorator for cosmodol.
 - [cosmodol.ops](_autosummary/cosmodol.ops.html.md): Key-taking operations, as free functions over the caller’s (possibly wrapped) store.
 - [cosmodol.recipes](_autosummary/cosmodol.recipes.html.md): Convenience wrappers and factories for cosmodol.
+- [cosmodol.routing](_autosummary/cosmodol.routing.html.md): Route an operation through a wrapped store’s own &#96;&#95;&#95;setitem&#95;&#95;&#96;/&#96;&#95;&#95;delitem&#95;&#95;&#96;.
 - [cosmodol.stores](_autosummary/cosmodol.stores.html.md): Mapping stores over a Cosmos DB container.
 - [cosmodol.testing](_autosummary/cosmodol.testing.html.md): Testing helpers for cosmodol — emulator fixture and a minimal in-memory fake.
 - [cosmodol.trees](_autosummary/cosmodol.trees.html.md): Tree-shaped stores: mapping-of-databases and mapping-of-containers.
 - [For AI agents](ai-agents.html.md): &#96;cosmodol&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-13 04:45 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-13 08:50 UTC&#42;&#42; from commit &lt;a href="https://github.com/i2m...
 
 ## Optional
 

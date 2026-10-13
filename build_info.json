@@ -1,38 +1,38 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-13T04:45:01Z",
+  "built_at": "2026-10-13T08:50:44Z",
   "package": {
     "name": "cosmodol",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "display_name": "cosmodol",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "d0072cbdcce76638eec504ae6174eddfa3d51c3c",
-    "short_commit": "d0072cb",
+    "commit": "a6aa9dd80680ec97cfa264a063454c59534f04ae",
+    "short_commit": "a6aa9dd",
     "branch": "master",
     "tags": [
-      "0.0.6"
+      "0.0.7"
     ],
     "dirty": false,
     "remote_url": "https://github.com/i2mint/cosmodol",
-    "commit_url": "https://github.com/i2mint/cosmodol/commit/d0072cbdcce76638eec504ae6174eddfa3d51c3c",
+    "commit_url": "https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "i2mint/cosmodol",
-    "sha": "3c8129b22fb5dfcf9c287f3b9e9a48c97bca5b85",
+    "sha": "a3f5fa85c035df5950133dd8992fd603770acbad",
     "sha_in_history": true,
     "ref": "refs/heads/master",
     "ref_name": "master",
-    "run_id": "38347818512",
-    "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38347818512",
+    "run_id": "38371868873",
+    "run_url": "https://github.com/i2mint/cosmodol/actions/runs/38371868873",
     "server_url": "https://github.com"
   },
   "tools": {
-    "epythet": "0.2.13",
+    "epythet": "0.2.15",
     "sphinx": "9.1.0",
     "docutils": "0.22.4",
     "python": "3.12.15"
@@ -57,19 +57,21 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 9,
-    "objects_documented": 86
+    "modules_documented": 10,
+    "objects_documented": 91
   },
   "pypi": {
     "checked": true,
     "latest": "0.0.6",
-    "relation": "same",
+    "relation": "ahead",
     "error": null
   },
-  "reproduce": "git clone https://github.com/i2mint/cosmodol && cd cosmodol\ngit checkout d0072cbdcce76638eec504ae6174eddfa3d51c3c\npip install \"epythet==0.2.13\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/i2mint/cosmodol && cd cosmodol\ngit checkout a6aa9dd80680ec97cfa264a063454c59534f04ae\npip install \"epythet==0.2.15\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
-    "aligned": true,
-    "notes": []
+    "aligned": false,
+    "notes": [
+      "The documented version (0.0.7) is ahead of the latest release on PyPI (0.0.6): these docs describe unreleased code."
+    ]
   }
 }

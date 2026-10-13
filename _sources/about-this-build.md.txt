@@ -5,19 +5,21 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-10-13 04:45 UTC** from commit <a href="https://github.com/i2mint/cosmodol/commit/d0072cbdcce76638eec504ae6174eddfa3d51c3c"><code>d0072cb</code></a> on branch <code>master</code>, for **cosmodol 0.0.6** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-13 08:50 UTC** from commit <a href="https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae"><code>a6aa9dd</code></a> on branch <code>master</code>, for **cosmodol 0.0.7** (from <code>pyproject.toml</code>).
 
-:::{note}
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+:::{warning}
+The documentation and the package may be misaligned:
+
+- The documented version (0.0.7) is ahead of the latest release on PyPI (0.0.6): these docs describe unreleased code.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/i2mint/cosmodol/commit/d0072cbdcce76638eec504ae6174eddfa3d51c3c"><code>d0072cbdcce76638eec504ae6174eddfa3d51c3c</code></a> |
+| Commit | <a href="https://github.com/i2mint/cosmodol/commit/a6aa9dd80680ec97cfa264a063454c59534f04ae"><code>a6aa9dd80680ec97cfa264a063454c59534f04ae</code></a> |
 | Branch | <code>master</code> |
-| Tags at this commit | <code>0.0.6</code> |
+| Tags at this commit | <code>0.0.7</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/i2mint/cosmodol</code> |
 
@@ -26,15 +28,15 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>i2mint/cosmodol</code> |
-| Run | <a href="https://github.com/i2mint/cosmodol/actions/runs/38347818512">38347818512</a> |
+| Run | <a href="https://github.com/i2mint/cosmodol/actions/runs/38371868873">38371868873</a> |
 | Ref | <code>refs/heads/master</code> |
-| Event commit | <code>3c8129b22fb5dfcf9c287f3b9e9a48c97bca5b85</code> (in the history of the built commit) |
+| Event commit | <code>a3f5fa85c035df5950133dd8992fd603770acbad</code> (in the history of the built commit) |
 
 ## Tools
 
 | | |
 |---|---|
-| epythet | 0.2.13 |
+| epythet | 0.2.15 |
 | Sphinx | 9.1.0 |
 | docutils | 0.22.4 |
 | Python | 3.12.15 |
@@ -53,14 +55,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/cosmodol/0.0.6/">0.0.6</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/cosmodol/0.0.6/">0.0.6</a>, older than the documented version (0.0.7).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/i2mint/cosmodol && cd cosmodol
-git checkout d0072cbdcce76638eec504ae6174eddfa3d51c3c
-pip install "epythet==0.2.13"
+git checkout a6aa9dd80680ec97cfa264a063454c59534f04ae
+pip install "epythet==0.2.15"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

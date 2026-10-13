@@ -1,0 +1,31 @@
+cosmodol.routing
+================
+
+.. automodule:: cosmodol.routing
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      WRITE_METHODS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      claim
+      redirect
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Redirect
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RedirectError
+   
