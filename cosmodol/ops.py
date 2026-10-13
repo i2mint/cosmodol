@@ -300,13 +300,17 @@ def batch_items(
     try:
         return _batch(leaf.container, triples, leaf.partition_key_value)
     except Exception as e:
-        if acted and _write_logic_above(store, leaf, CosmosItems) and hasattr(e, "add_note"):
-            e.add_note(
-                "batch_items: the batch may not have committed, but the wrapping layers had already "
-                f"run their write logic for these keys: {acted!r}. A write-through cache, "
-                "audit log or index they keep may now disagree with the container "
+        if acted and _write_logic_above(store, leaf, CosmosItems):
+            note = (
+                "batch_items: the batch may not have committed, but the wrapping layers had "
+                f"already run their write logic for these keys: {acted!r}. A write-through "
+                "cache, audit log or index they keep may now disagree with the container "
                 "(i2mint/cosmodol#5)."
             )
+            if hasattr(e, "add_note"):
+                e.add_note(note)
+            else:  # Python 3.10: the same attribute, which only newer tracebacks print
+                e.__notes__ = [*getattr(e, "__notes__", []), note]
         raise
 
 
