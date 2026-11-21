@@ -15,7 +15,7 @@ See `misc/docs/architecture.md` Layer 0 and `misc/docs/design_decisions.md` §14
 | [`CosmosConnection`](#cosmodol.connection.CosmosConnection)([credential, ...])   | Holds a resolved credential and a lazy `CosmosClient`.   |
 |----------------------------------------------------------------------------------------|----------------------------------------------------------|
 
-### *class* cosmodol.connection.CosmosConnection(credential=None, connection_string=None, endpoint=None, key=None, consistency_level=None, client_kwargs=<factory>)
+### *class* cosmodol.connection.CosmosConnection(credential=None, connection_string=None, endpoint=None, key=None, consistency_level=None, client_kwargs=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -25,7 +25,7 @@ This is the dependency-injection seam for the package. Tests construct one point
 at the emulator without touching any store class.
 
 * **Parameters:**
-  * **credential** (`Union`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – explicit credential object or account-key string.
+  * **credential** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – explicit credential object or account-key string.
   * **connection_string** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – full `AccountEndpoint=...;AccountKey=...` string.
   * **endpoint** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Cosmos endpoint URL (with or without credential).
   * **key** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – account master key.

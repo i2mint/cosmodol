@@ -38,7 +38,7 @@ Mapping of container name → `ContainerProxy` (or store-wrapped form).
 `cosmodol.delete_container(db_store, name, force=True)`.
 
 * **Parameters:**
-  * **database** (`Union`[`DatabaseProxy`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Either an existing `DatabaseProxy`, a database name string (resolved
+  * **database** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`DatabaseProxy`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Either an existing `DatabaseProxy`, a database name string (resolved
     via `connection`), or `None` (use `connection.database_name`).
   * **connection** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – `CosmosConnection` (or anything `from_anything` accepts).
   * **store_factory** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)]) – Optional callable `(ContainerProxy) -> Mapping` used to wrap

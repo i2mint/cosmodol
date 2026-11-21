@@ -96,7 +96,7 @@ Mapping of database name → `CosmosDatabase`.
 `__delitem__` refuses non-empty databases; use
 `cosmodol.delete_database(account_store, name, force=True)`.
 
-### *class* cosmodol.CosmosConnection(credential=None, connection_string=None, endpoint=None, key=None, consistency_level=None, client_kwargs=<factory>)
+### *class* cosmodol.CosmosConnection(credential=None, connection_string=None, endpoint=None, key=None, consistency_level=None, client_kwargs=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -106,7 +106,7 @@ This is the dependency-injection seam for the package. Tests construct one point
 at the emulator without touching any store class.
 
 * **Parameters:**
-  * **credential** (`Union`[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – explicit credential object or account-key string.
+  * **credential** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – explicit credential object or account-key string.
   * **connection_string** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – full `AccountEndpoint=...;AccountKey=...` string.
   * **endpoint** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Cosmos endpoint URL (with or without credential).
   * **key** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – account master key.
@@ -142,7 +142,7 @@ Mapping of container name → `ContainerProxy` (or store-wrapped form).
 `cosmodol.delete_container(db_store, name, force=True)`.
 
 * **Parameters:**
-  * **database** (`Union`[`DatabaseProxy`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Either an existing `DatabaseProxy`, a database name string (resolved
+  * **database** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`DatabaseProxy`, [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Either an existing `DatabaseProxy`, a database name string (resolved
     via `connection`), or `None` (use `connection.database_name`).
   * **connection** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – `CosmosConnection` (or anything `from_anything` accepts).
   * **store_factory** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)]) – Optional callable `(ContainerProxy) -> Mapping` used to wrap
@@ -159,7 +159,7 @@ Keys are item `id` strings; values are JSON-dict items. The store auto-injects
 `id` and the partition-key property on writes.
 
 * **Parameters:**
-  * **container** (`Union`[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – An already-built `ContainerProxy` or a `(database, container)`
+  * **container** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – An already-built `ContainerProxy` or a `(database, container)`
     tuple / `{"database": ..., "container": ...}` dict to resolve via
     `connection`.
   * **partition_key_value** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – The single partition-key value this store is scoped to.
@@ -199,7 +199,7 @@ Iteration is cross-partition; the first call emits a `UserWarning` (silence with
 `len_via_query=True`. See `misc/docs/design_decisions.md` §§4, 6.
 
 * **Parameters:**
-  * **container** (`Union`[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – As in `CosmosItems`.
+  * **container** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – As in `CosmosItems`.
   * **partition_key_path** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Path of the partition-key property in items. Read from the
     container if absent.
   * **connection** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – As in `CosmosItems`.
@@ -268,15 +268,21 @@ Subset of Cosmos response headers we surface for observability.
 RU consumed by the operation. `None` when the emulator (which
 does not populate this header) was the backend.
 
+* **Type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
 #### etag
 
 ETag of the (created / read / replaced) item, when applicable.
 
-#### etag *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+* **Type:**
+  [`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+#### etag *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
 
 Alias for field number 1
 
-#### request_charge *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+#### request_charge *: [Optional](https://docs.python.org/3/library/typing.html#typing.Optional)[[float](https://docs.python.org/3/builtins/functions.html#float)]*
 
 Alias for field number 0
 
@@ -366,7 +372,7 @@ The store flavor is chosen based on which partition-key kwarg is passed:
 * **Parameters:**
   * **database** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Database name.
   * **container** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Container name.
-  * **connection** (`Union`[[`CosmosConnection`](cosmodol.connection.html.md#cosmodol.connection.CosmosConnection), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – A `CosmosConnection` (or anything `from_anything` accepts) to
+  * **connection** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`CosmosConnection`](cosmodol.connection.html.md#cosmodol.connection.CosmosConnection), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – A `CosmosConnection` (or anything `from_anything` accepts) to
     reuse a client. Mutually exclusive with explicit credential kwargs.
   * **credential** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – Forwarded to `CosmosConnection`
     when `connection` is None.

@@ -26,7 +26,7 @@ Keys are item `id` strings; values are JSON-dict items. The store auto-injects
 `id` and the partition-key property on writes.
 
 * **Parameters:**
-  * **container** (`Union`[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – An already-built `ContainerProxy` or a `(database, container)`
+  * **container** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – An already-built `ContainerProxy` or a `(database, container)`
     tuple / `{"database": ..., "container": ...}` dict to resolve via
     `connection`.
   * **partition_key_value** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – The single partition-key value this store is scoped to.
@@ -66,7 +66,7 @@ Iteration is cross-partition; the first call emits a `UserWarning` (silence with
 `len_via_query=True`. See `misc/docs/design_decisions.md` §§4, 6.
 
 * **Parameters:**
-  * **container** (`Union`[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – As in `CosmosItems`.
+  * **container** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[`ContainerProxy`, [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)]) – As in `CosmosItems`.
   * **partition_key_path** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – Path of the partition-key property in items. Read from the
     container if absent.
   * **connection** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – As in `CosmosItems`.

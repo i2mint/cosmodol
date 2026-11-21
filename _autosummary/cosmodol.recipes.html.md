@@ -24,7 +24,7 @@ The store flavor is chosen based on which partition-key kwarg is passed:
 * **Parameters:**
   * **database** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Database name.
   * **container** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – Container name.
-  * **connection** (`Union`[[`CosmosConnection`](cosmodol.connection.html.md#cosmodol.connection.CosmosConnection), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – A `CosmosConnection` (or anything `from_anything` accepts) to
+  * **connection** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`CosmosConnection`](cosmodol.connection.html.md#cosmodol.connection.CosmosConnection), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – A `CosmosConnection` (or anything `from_anything` accepts) to
     reuse a client. Mutually exclusive with explicit credential kwargs.
   * **credential** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – Forwarded to `CosmosConnection`
     when `connection` is None.

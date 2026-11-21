@@ -9,10 +9,11 @@
 <link rel="alternate" type="text/markdown" href="cosmodol.trees.html.md">
 <link rel="describedby" href="llms.txt"><link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="For AI agents" href="../ai-agents.html"><link rel="prev" title="cosmodol.testing" href="cosmodol.testing.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
         <title>cosmodol.trees - cosmodol</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
     
@@ -304,7 +305,7 @@ store-wrapped form via <code class="docutils literal notranslate"><span class="p
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>database</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DatabaseProxy</span></code>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Either an existing <code class="docutils literal notranslate"><span class="pre">DatabaseProxy</span></code>, a database name string (resolved
+<li><p><strong>database</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Union</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DatabaseProxy</span></code>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Either an existing <code class="docutils literal notranslate"><span class="pre">DatabaseProxy</span></code>, a database name string (resolved
 via <code class="docutils literal notranslate"><span class="pre">connection</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> (use <code class="docutils literal notranslate"><span class="pre">connection.database_name</span></code>).</p></li>
 <li><p><strong>connection</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – <code class="docutils literal notranslate"><span class="pre">CosmosConnection</span></code> (or anything <code class="docutils literal notranslate"><span class="pre">from_anything</span></code> accepts).</p></li>
 <li><p><strong>store_factory</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>]</span>) – Optional callable <code class="docutils literal notranslate"><span class="pre">(ContainerProxy)</span> <span class="pre">-&gt;</span> <span class="pre">Mapping</span></code> used to wrap
@@ -382,7 +383,7 @@ the value returned by <code class="docutils literal notranslate"><span class="pr
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=162d0dcb"></script>
+</div><script src="../_static/documentation_options.js?v=bf6d79ad"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
