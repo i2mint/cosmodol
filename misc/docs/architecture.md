@@ -179,7 +179,7 @@ CosmosPickleStore = wrap_kvs(
 )
 
 # Strip Cosmos system fields (_etag, _ts, _rid, _self, _attachments) on read
-CosmosCleanStore = wrap_kvs(CosmosItems, obj_of_data=strip_system_fields)
+CosmosCleanStore = wrap_kvs(CosmosItems, value_decoder=strip_system_fields)
 ```
 
 Plus one **top-level factory** for the easy path:

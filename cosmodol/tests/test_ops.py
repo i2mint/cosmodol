@@ -100,8 +100,8 @@ def test_replace_item_applies_value_codec():
     c = _container()
     Encoded = wrap_kvs(
         KeyCodecs.prefixed(PREFIX)(CosmosItems),
-        data_of_obj=lambda s: {"payload": s.upper()},
-        obj_of_data=lambda d: d["payload"].lower(),
+        value_encoder=lambda s: {"payload": s.upper()},
+        value_decoder=lambda d: d["payload"].lower(),
     )
     w = Encoded(c, partition_key_value=PK, partition_key_path="/_pk")
     replace_item(w, "doc1", "shout")
@@ -154,7 +154,7 @@ def test_functions_validate_their_first_argument():
 
 def _redacted_partitioned(c):
     Redacted = wrap_kvs(
-        CosmosPartitionedItems, obj_of_data=lambda d: {**d, "payload": "<redacted>"}
+        CosmosPartitionedItems, value_decoder=lambda d: {**d, "payload": "<redacted>"}
     )
     return Redacted(c, partition_key_path="/_pk", silent_full_scan=True)
 
@@ -168,7 +168,7 @@ def test_partition_refuses_to_strip_wrappers():
 
 def test_partition_wrap_rewraps_the_child():
     p = _redacted_partitioned(_container())
-    sub = partition(p, PK, wrap=wrap_kvs(obj_of_data=lambda d: {**d, "payload": "-"}))
+    sub = partition(p, PK, wrap=wrap_kvs(value_decoder=lambda d: {**d, "payload": "-"}))
     assert sub["doc1"]["payload"] == "-"
 
 
