@@ -1,23 +1,23 @@
 metric,value
 schema_version,1.0
-timestamp,2026-11-21T17:31:13.924667Z
+timestamp,2026-11-21T17:31:22.484571Z
 commit_sha,462eeebd809b29a42768859ac4e537a04ea047e3
 commit_message,Use the encoder/decoder keywords of wrap_kvs (dol 0.4 deprecates X_of_Y) (#7)
 python_version,3.10
-metrics.umpyre_stats.num_functions,8987
-metrics.umpyre_stats.num_classes,2110
-metrics.umpyre_stats.total_lines,344196
-metrics.umpyre_stats.empty_lines,42673
-metrics.umpyre_stats.comment_lines,20397
-metrics.umpyre_stats.docs_lines,41898
-metrics.umpyre_stats.function_lines,151263
-metrics.umpyre_stats.empty_lines_ratio,0.1239787795325919
-metrics.umpyre_stats.comment_lines_ratio,0.05925984032353659
-metrics.umpyre_stats.function_lines_ratio,0.43946762890910995
-metrics.umpyre_stats.mean_lines_per_function,16.831311894959384
-metrics.umpyre_stats.files_analyzed,842
+metrics.umpyre_stats.num_functions,8900
+metrics.umpyre_stats.num_classes,2098
+metrics.umpyre_stats.total_lines,342316
+metrics.umpyre_stats.empty_lines,42378
+metrics.umpyre_stats.comment_lines,20337
+metrics.umpyre_stats.docs_lines,41887
+metrics.umpyre_stats.function_lines,149923
+metrics.umpyre_stats.empty_lines_ratio,0.12379789434323842
+metrics.umpyre_stats.comment_lines_ratio,0.05941001881302656
+metrics.umpyre_stats.function_lines_ratio,0.4379666740672361
+metrics.umpyre_stats.mean_lines_per_function,16.845280898876403
+metrics.umpyre_stats.files_analyzed,832
 metrics.umpyre_stats.pypi_version,0.0.8
-metrics.umpyre_stats.errors,"['_range.py: invalid non-printable character U+FEFF (_range.py, line 1)', 'http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)', 'auth.py: invalid non-printable character U+FEFF (auth.py, line 1)', 'exceptions.py: invalid non-printable character U+FEFF (exceptions.py, line 1)', 'documents.py: invalid non-printable character U+FEFF (documents.py, line 1)', '_base.py: invalid non-printable character U+FEFF (_base.py, line 1)', 'errors.py: invalid non-printable character U+FEFF (errors.py, line 1)', '_partition.py: invalid non-printable character U+FEFF (_partition.py, line 1)', '_range_partition_resolver.py: invalid non-printable character U+FEFF (_range_partition_resolver.py, line 1)', '_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)']"
+metrics.umpyre_stats.errors,"['http_constants.py: invalid non-printable character U+FEFF (http_constants.py, line 1)', '_partition.py: invalid non-printable character U+FEFF (_partition.py, line 1)', 'documents.py: invalid non-printable character U+FEFF (documents.py, line 1)', 'cosmos_client.py: invalid non-printable character U+FEFF (cosmos_client.py, line 1)', '_base.py: invalid non-printable character U+FEFF (_base.py, line 1)', 'auth.py: invalid non-printable character U+FEFF (auth.py, line 1)', '_range.py: invalid non-printable character U+FEFF (_range.py, line 1)', 'errors.py: invalid non-printable character U+FEFF (errors.py, line 1)', '_query_iterable.py: invalid non-printable character U+FEFF (_query_iterable.py, line 1)', '_range_partition_resolver.py: invalid non-printable character U+FEFF (_range_partition_resolver.py, line 1)']"
 metrics.umpyre_stats.total_errors,11
 metrics.workflow_status.last_run_status,success
 metrics.workflow_status.last_success_timestamp,2026-11-21T17:30:07Z
@@ -38,4 +38,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,3.072538137435913
+collection_duration_seconds,4.162679433822632
